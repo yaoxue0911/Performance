@@ -1,0 +1,32 @@
+## 性能测试要点
+### 测试用户
+选择不同region的ADMIN用户
+![alt text](image.png)
+### POST 请求参数
+ - 服务端在处理请求参数时，采取了“忽略未知或不必要参数”的宽容策略。
+ - add的参数可以固定，不是非得随机
+### CSS/JS请求
+排除。
+理由有四点：
+第一，你关注的核心风险都在后端——POST case 的事务锁（PERF-001）、case 表索引（PERF-004）、连接池耗尽（PERF-003）。CSS/JS 的加载时间不会告诉你这些。
+第二，记录管理系统是内部工具，50 个用户，静态资源大概率部署在同一内网服务器上，浏览器首次加载后会强缓存（304 或 from disk cache），后续请求不再传输。在脚本里每次迭代都拉一遍 CSS/JS，反而夸大了真实负载。
+第三，GET /case/add/page 这个请求本身已经覆盖了页面渲染的"首字节时间"（TTFB）和服务端的模板/视图层开销。CSS/JS 的加载属于客户端渲染阶段，测的是网络和浏览器，不是你写的那部分代码。
+第四，如果你确实关心页面整体加载体验，用浏览器的 Lighthouse 或 WebPageTest 对单个页面做一次审计，比在 JMeter 里维护 20 个静态资源请求更有效。
+
+如果要做，推荐做法不是手写每一个 CSS/JS 请求，而是在 JMeter 里用 HTTP Request Defaults 配合 Retrieve All Embedded Resources：
+HTTP Request: GET /case/add/page
+  └── Advanced 标签 → ☑ Retrieve All Embedded Resources
+      └── Embedded URLs must match: .*\.(css|js|png|jpg|svg|woff2).*
+这样只需维护一个请求，JMeter 自动解析 HTML 中的资源引用并并发下载。注意勾选 Parallel downloads（默认 6 个并发），才能模拟浏览器的真实行为。
+### CAD2RMS
+
+### SKILL 生成jmeter脚本
+#### 生成测试计划+Jemter项目结构
+https://github.com/proffesor-for-testing/agentic-qe/tree/main/assets/skills/performance-testing
+#### 生成jmeter脚本
+fiddler录制
+SKILL处理：参数化、POST请求体编码？问题（从saz文件里获取请求体内容加到JMX里？）
+通过脚本反写用例
+
+
+
