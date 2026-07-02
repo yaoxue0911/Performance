@@ -1,0 +1,137 @@
+Test Plan: IR_IncidentReport_LoadTest
+|-- User Defined Variables
+|   |-- protocol = ${__P(protocol,https)}
+|   |-- target_host = ${__P(target_host,parms42test.csitech.com)}
+|   |-- target_port = ${__P(target_port,443)}
+|   |-- concurrency = ${__P(concurrency,20)}
+|   |-- rampup = ${__P(rampup,20)}
+|   |-- duration = ${__P(duration,600)}
+|   |-- template_id = ${__P(template_id,1318)}
+|   |-- division_id = ${__P(division_id,3)}
+|   |-- report_type = C
+|   |-- indicator_type = 1
+|   |-- region_id = ${__P(region_id,100000)}
+|   |-- case_id = ${case_id}  # 建议 CSV 参数化，抓包值为 1100017367
+|
+|-- CSV Data Set Config: case_data.csv
+|   |-- variables: case_id,division_id,region_id,staff_id
+|   |-- fallback: case_id=1100017367, division_id=3, region_id=100000, staff_id=1
+|
+|-- HTTP Request Defaults
+|   |-- Server: ${target_host}
+|   |-- Protocol: ${protocol}
+|   |-- Port: ${target_port}
+|   |-- KeepAlive: true
+|
+|-- HTTP Cookie Manager
+|-- HTTP Cache Manager
+|-- HTTP Header Manager: Common Browser Headers
+|   |-- User-Agent, Accept, Accept-Language, Origin, Referer
+|
+|-- Result Collector: result.jtl
+|   |-- CSV output, save timeStamp/elapsed/label/responseCode/success/bytes/sentBytes/URL/Latency/Connect
+|
+|-- Thread Group: TG_IncidentReport_20
+|   |-- num_threads = ${__P(concurrency,20)}
+|   |-- ramp_time = ${__P(rampup,20)}
+|   |-- scheduler = true
+|   |-- duration = ${__P(duration,600)}
+|   |-- on_sample_error = continue
+|
+|   |-- Once Only Controller: Login_And_Context
+|   |   |-- GET /RMS/Login
+|   |   |   |-- Extract csrf_login from input[name=__RequestVerificationToken]
+|   |   |-- POST /RMS/Login
+|   |   |   |-- params: LoginId, Password, usbKeyValue, computerNameValue, __RequestVerificationToken=${csrf_login}
+|   |   |   |-- assert: 302
+|   |   |-- GET /RMS/LoginRedirect
+|   |   |-- GET /RMS/Index
+|   |   |-- GET /RMS/DisclaimerRedirect?division_id=${division_id}
+|   |   |   |-- Extract csrf_disclaimer
+|   |   |-- POST /RMS/DisclaimerRedirect?handler=Jump
+|   |   |   |-- params: __RequestVerificationToken=${csrf_disclaimer}
+|   |   |-- GET /RMS
+|   |   |-- GET /RMS/Home?division_id=${division_id}
+|
+|   |-- Loop Controller: Business_Iteration
+|   |   |-- User Parameters: Generate Dynamic Person/Vehicle Data
+|   |   |   |-- firstName = TEST${__Random(1000,9999)}
+|   |   |   |-- lastName = TEST${__Random(1000,9999)}
+|   |   |   |-- ssn = ${__Random(100,999)}-${__Random(10,99)}-${__Random(1000,9999)}
+|   |   |   |-- driverLicense = DL${__Random(100000,999999)}
+|   |   |   |-- plateNo = P${__Random(100000,999999)}
+|   |   |
+|   |   |-- Transaction Controller: 01_Open_New_Incident_Report
+|   |   |   |-- GET /RMS/AspSoft/Dispatcher?nextPID=inquireIncidentSummary&case_id=${case_id}
+|   |   |   |-- GET /RMS/Aspsoft/Dispatcher?nextPID=listPoliceReport&case_id=${case_id}&division_id=${division_id}&report_type=C&indicator_type=1
+|   |   |   |   |-- Extract csrf_listPolice, doubleEntryTimeStamp
+|   |   |   |-- POST /RMS/Aspsoft/Dispatcher?...listPoliceReport...
+|   |   |   |   |-- params: template_id~|~|A=${template_id}, submit_button=New Report, PID=listPoliceReport,
+|   |   |   |              doubleEntryTimeStamp=${doubleEntryTimeStamp}, __RequestVerificationToken=${csrf_listPolice}
+|   |   |   |   |-- Extract FormGUID from 302 Location header
+|   |   |   |-- GET /RMS/Aspsoft/IntakeForm/middlepage?...template_id=${template_id}&report_id=0&case_id=${case_id}&FormGUID=${FormGUID}
+|   |   |       |-- Extract csrf_middle, existing contact/vehicle/location/case master_id_list
+|   |   |
+|   |   |-- Transaction Controller: 02_Add_Contact
+|   |   |   |-- GET /RMS/aspsoft/popupdispatcher?nextPID=addCaseVW&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_ALLCONTACT&template_id=${template_id}&report_id=0&rnd=${__Random(0,999999)}
+|   |   |   |   |-- Extract csrf_contact, doubleEntryTimeStamp_contact
+|   |   |   |-- POST/GET MasterName checks for last_name/first_name, ssn, driver_license
+|   |   |   |-- GET /InfoMapping/api/GisSvc/GeoCode?...regionId=${region_id}
+|   |   |   |-- POST /RMS/aspsoft/popupdispatcher?nextPID=addCaseVW...
+|   |   |   |   |-- params replace captured BAILEY/REBECCA/345-47-8905/DL754569 with ${lastName}/${firstName}/${ssn}/${driverLicense}
+|   |   |   |   |-- static values from SAZ: sex=F, race=A, ethnicity=H, state=PA, county=36, municipality=36215
+|   |   |   |   |-- assert body contains CloseDialog(1)
+|   |   |   |-- GET middlepage PartialRefresh_Ajax=listIntakeFormMaster_ALLCONTACT
+|   |   |       |-- Extract new contact master_id_list, person_id, contact_id, location_id
+|   |   |
+|   |   |-- Transaction Controller: 03_Add_Vehicle
+|   |   |   |-- GET /RMS/aspsoft/popupdispatcher?nextPID=addCaseVehicle&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_Vehicle&template_id=${template_id}&report_id=0
+|   |   |   |   |-- Extract csrf_vehicle, doubleEntryTimeStamp_vehicle
+|   |   |   |-- POST/GET MasterName vehicle duplicate check with plate_no=${plateNo}
+|   |   |   |-- optional owner lookup using generated contact
+|   |   |   |-- POST /RMS/aspsoft/popupdispatcher?nextPID=addCaseVehicle...
+|   |   |   |   |-- params: plate_no=${plateNo}, state=PA, year=2020, make=AUDI, model=200LS, color=BLACK,
+|   |   |   |              person/contact/location ids from 02_Add_Contact, __RequestVerificationToken=${csrf_vehicle}
+|   |   |   |   |-- assert body contains CloseDialog(1)
+|   |   |   |-- GET middlepage PartialRefresh_Ajax=listIntakeFormMaster_Vehicle
+|   |   |       |-- Extract new vehicle master_id_list, vehicle_id, case_vehicle_id
+|   |   |
+|   |   |-- Transaction Controller: 04_Add_NJS_Code
+|   |   |   |-- GET /RMS/aspsoft/popupdispatcher?nextPID=addCaseNJSCode&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_NJS&template_id=${template_id}&report_id=0
+|   |   |   |   |-- Extract csrf_njs, doubleEntryTimeStamp_njs, existing inv_njs_id rows
+|   |   |   |-- GET /RMS/Aspsoft/PopUpDispatcher?nextPID=listPopupCharge_PA&case_id=${case_id}&charge=&statute=9
+|   |   |   |   |-- Regex/XPath2 Extractor: return_value, Match No.=0 random
+|   |   |   |   |-- JSR223 PostProcessor: HTML decode + split "~" into njs_code, njs_description, statute_title, grades
+|   |   |   |-- JSR223 PreProcessor: Build addNJSCode form body from extracted existing row names + selected charge
+|   |   |   |-- POST /RMS/aspsoft/popupdispatcher?nextPID=addCaseNJSCode...
+|   |   |   |   |-- assert body contains CloseDialog(1)
+|   |   |   |-- GET middlepage PartialRefresh_Ajax=listIntakeFormMaster_NJS
+|   |   |       |-- Extract latest inv_njs_id
+|   |   |
+|   |   |-- Transaction Controller: 05_Create_Intake_Report
+|   |   |   |-- JSR223 PreProcessor: Build objects_parameter and objects_data_index
+|   |   |   |   |-- source: contact master_id_list, vehicle master_id_list, inv_njs_id, location master, case master
+|   |   |   |   |-- encoding: Base64, separators \u0002 between rows and \u0003 between groups
+|   |   |   |-- POST /RMS/Aspsoft/IntakeForm/middlepage?...handler=CreateIntake
+|   |   |   |   |-- params: template_id=${template_id}, report_id=0, objects_parameter, objects_data_index
+|   |   |   |   |-- JSON Extractor: report_id=$.report_id
+|   |   |   |   |-- assert: $.message == OK
+|   |   |   |-- GET /RMS/Aspsoft/IntakeForm/Intake?...case_id=${case_id}&template_id=${template_id}&report_id=${report_id}
+|   |   |       |-- Extract csrf_intake and hidden hdn* fields
+|   |   |
+|   |   |-- Transaction Controller: 06_Save_And_Workflow
+|   |   |   |-- POST /RMS/AspSoft/IntakeForm/Intake?action=auto_confirm&save_data=1&case_id=${case_id}&template_id=${template_id}&report_id=${report_id}
+|   |   |   |   |-- AJAX header: RequestVerificationToken=${csrf_intake}, X-Requested-With=XMLHttpRequest
+|   |   |   |   |-- params: call_type=${njs_description}, njs_code=${njs_code}, hdnReportID=${report_id}, hdnCaseID=${case_id}, hdnTemplateCode=RMS_INCIDENTREPORT
+|   |   |   |   |-- assert body == WF
+|   |   |   |-- GET /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow?nextPID=updateReportWorkflowBatch&report_ids=${report_id}
+|   |   |   |   |-- Extract csrf_workflow, CurrentWorkflowLookupId, CurrentReportStatus, OriginalReportStatus, ReportStatus
+|   |   |   |-- POST handler=ReportNextStepSelectedChanged
+|   |   |   |   |-- params: nextStep=ROUTE1, reportIds=${report_id}, CurrentReportStatus, reportStatus
+|   |   |   |-- POST handler=SaveWorkFlow
+|   |   |   |   |-- params: OriginalReportStatus, CurrentWorkflowLookupId, reportIds=${report_id}, ddlReportNextStep=ROUTE1,
+|   |   |   |              hldRouteTypeValue=GROUP, hldDSKeyValue=OFFICER, hldDSAutoValue=Y
+|   |   |   |   |-- assert JSON: code=200, returnValue=1
+|   |   |   |-- optional POST handler=Clear multipart
+|   |
+|   |-- Uniform Random Timer: ${__P(think_time_min,500)}-${__P(think_time_max,1500)} ms
