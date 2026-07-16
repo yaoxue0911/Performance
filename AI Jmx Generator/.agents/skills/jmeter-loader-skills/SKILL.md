@@ -220,6 +220,7 @@ division_id, inbox_staff_id, inbox_sub_id
 | Listeners   | result\_collector, backend\_listener\_influxdb                                                         |
 
 **动态组装示例**：
+把最终文字计划映射成 generate_jmx.py --build 参数，调用generate_jmx.py来组装jmx脚本。只有当最终测试计划包含现有生成器无法表达的结构时，才创建一次性辅助脚本，并说明“为什么不用现有生成器”。
 
 ```bash
 python generate_jmx.py --build --output test.jmx \
