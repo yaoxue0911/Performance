@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JMeter Agent 项目流程演示</title>
+  <style>
+    :root {
+      --ink: #11243d;
+      --muted: #637289;
+      --blue: #2268e9;
+      --blue-2: #55a0ff;
+      --cyan: #14b8c8;
+      --orange: #f29a3f;
+      --green: #25a76a;
+      --red: #de5b62;
+      --paper: #f4f7fb;
+      --card: #ffffff;
+      --line: #dbe4f0;
+      --shadow: 0 18px 50px rgba(35, 65, 108, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #dfe7f2;
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 5% 10%, rgba(34, 104, 233, 0.12), transparent 28%),
+        radial-gradient(circle at 95% 85%, rgba(20, 184, 200, 0.10), transparent 26%);
+      pointer-events: none;
+    }
+
+    .deck {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 4.2vh 4.6vw 6.4vh;
+      background:
+        linear-gradient(90deg, rgba(34, 104, 233, 0.045) 1px, transparent 1px),
+        linear-gradient(rgba(34, 104, 233, 0.045) 1px, transparent 1px),
+        var(--paper);
+      background-size: 42px 42px;
+      opacity: 0;
+      transform: translateX(4%);
+      pointer-events: none;
+      transition: opacity 280ms ease, transform 340ms ease;
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .slide::after {
+      content: attr(data-section);
+      position: absolute;
+      top: 3.4vh;
+      right: 4.6vw;
+      color: var(--blue);
+      font-size: clamp(11px, 0.85vw, 16px);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      margin: 0 0 0.6vh;
+      color: var(--blue);
+      font-size: clamp(12px, 0.92vw, 17px);
+      font-weight: 800;
+      letter-spacing: 0.14em;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 2.7vw, 54px);
+      line-height: 1.15;
+      letter-spacing: -0.025em;
+    }
+
+    .subtitle {
+      margin: 0.8vh 0 2.2vh;
+      color: var(--muted);
+      font-size: clamp(14px, 1.02vw, 20px);
+    }
+
+    .panel {
+      border: 1px solid rgba(189, 204, 224, 0.75);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 1.1vh;
+      font-size: clamp(15px, 1.1vw, 21px);
+      font-weight: 800;
+    }
+
+    .section-label span {
+      display: inline-grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 14px;
+    }
+
+    /* Slide 1 */
+    .main-flow {
+      display: grid;
+      grid-template-columns: 1.22fr 0.95fr 1.15fr 1.05fr 0.9fr 1.05fr;
+      gap: 1.7vw;
+      align-items: stretch;
+      position: relative;
+      margin-top: 1.2vh;
+    }
+
+    .main-flow::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 5%;
+      right: 5%;
+      height: 4px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      z-index: 0;
+      transform: translateY(-50%);
+    }
+
+    .flow-card {
+      min-height: 23vh;
+      padding: 2.1vh 1.2vw 1.7vh;
+      position: relative;
+      z-index: 1;
+      border: 1px solid var(--line);
+      border-top: 5px solid var(--accent, var(--blue));
+      border-radius: 17px;
+      background: #fff;
+      box-shadow: 0 12px 34px rgba(31, 62, 105, 0.10);
+    }
+
+    .flow-card:not(:last-child)::after {
+      content: "›";
+      position: absolute;
+      top: 50%;
+      right: -1.45vw;
+      width: 1.1vw;
+      height: 2.2vw;
+      transform: translateY(-50%);
+      color: var(--blue);
+      font-size: clamp(24px, 2.1vw, 42px);
+      font-weight: 300;
+      line-height: 1;
+      text-shadow: 0 0 8px var(--paper);
+    }
+
+    .step-no {
+      color: var(--accent, var(--blue));
+      font-size: clamp(11px, 0.75vw, 14px);
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+
+    .flow-card h2 {
+      margin: 0.7vh 0 1.15vh;
+      font-size: clamp(16px, 1.2vw, 24px);
+      line-height: 1.3;
+    }
+
+    .flow-card p, .flow-card li {
+      color: var(--muted);
+      font-size: clamp(12px, 0.83vw, 16px);
+      line-height: 1.55;
+    }
+
+    .flow-card p { margin: 0; }
+
+    .flow-card ul {
+      margin: 0;
+      padding-left: 1.1em;
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 1vh;
+      padding: 0.45vh 0.62vw;
+      border-radius: 999px;
+      color: var(--accent, var(--blue));
+      background: color-mix(in srgb, var(--accent, var(--blue)) 10%, white);
+      font-size: clamp(10px, 0.72vw, 14px);
+      font-weight: 800;
+    }
+
+    .approval-loop {
+      display: grid;
+      grid-template-columns: 1.2fr auto 1fr;
+      align-items: center;
+      gap: 1.3vw;
+      margin-top: 2vh;
+      padding: 1.5vh 1.4vw;
+    }
+
+    .approval-loop strong {
+      display: block;
+      margin-bottom: 0.25vh;
+      font-size: clamp(14px, 0.98vw, 19px);
+    }
+
+    .approval-loop p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(11px, 0.8vw, 15px);
+    }
+
+    .loop-arrow {
+      color: var(--orange);
+      font-size: clamp(24px, 2vw, 38px);
+      font-weight: 900;
+    }
+
+    .roles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1vw;
+      margin-top: 1.5vh;
+    }
+
+    .role {
+      padding: 1.1vh 1vw;
+      border-left: 4px solid var(--accent);
+      background: rgba(255,255,255,0.76);
+      border-radius: 0 12px 12px 0;
+    }
+
+    .role strong { font-size: clamp(12px, 0.9vw, 17px); }
+    .role small { color: var(--muted); font-size: clamp(10px, 0.74vw, 14px); }
+
+    /* Slide 2 */
+    .skill-layout {
+      display: grid;
+      grid-template-columns: 0.82fr 1.65fr;
+      gap: 1.7vw;
+      height: 68vh;
+    }
+
+    .skill-stack {
+      padding: 2vh 1.3vw;
+    }
+
+    .layer {
+      position: relative;
+      margin-bottom: 1.15vh;
+      padding: 1.5vh 1.05vw 1.35vh 1.25vw;
+      border-radius: 14px;
+      background: var(--layer-bg);
+      border: 1px solid var(--layer-border);
+    }
+
+    .layer::before {
+      content: attr(data-level);
+      position: absolute;
+      top: 1.35vh;
+      right: 0.85vw;
+      color: var(--layer-color);
+      font-size: clamp(10px, 0.68vw, 13px);
+      font-weight: 900;
+    }
+
+    .layer h3 {
+      margin: 0 0 0.65vh;
+      color: var(--layer-color);
+      font-size: clamp(14px, 1vw, 20px);
+    }
+
+    .layer p {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(11px, 0.76vw, 15px);
+      line-height: 1.55;
+    }
+
+    .callout {
+      margin-top: 1.2vh;
+      padding: 1.4vh 1vw;
+      border-radius: 13px;
+      color: #fff;
+      background: linear-gradient(135deg, #14365f, #225aa6);
+      font-size: clamp(11px, 0.78vw, 15px);
+      line-height: 1.55;
+    }
+
+    .engine {
+      padding: 2vh 1.3vw;
+      overflow: hidden;
+    }
+
+    .engine-flow {
+      display: grid;
+      grid-template-columns: 1fr 40px 1fr 40px 1.22fr;
+      align-items: stretch;
+      gap: 0.35vw;
+      height: calc(100% - 4.2vh);
+    }
+
+    .engine-box {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1.4vh 1vw;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: #f9fbfe;
+    }
+
+    .engine-box h3 {
+      margin: 0 0 1vh;
+      font-size: clamp(14px, 1.03vw, 20px);
+    }
+
+    .engine-box p, .engine-box li {
+      color: var(--muted);
+      font-size: clamp(10px, 0.73vw, 14px);
+      line-height: 1.5;
+    }
+
+    .engine-box ul { margin: 0; padding-left: 1.1em; }
+
+    .mini-code {
+      margin-top: 1vh;
+      padding: 1vh 0.75vw;
+      border-radius: 10px;
+      color: #ddecff;
+      background: #142942;
+      font: 600 clamp(10px, 0.69vw, 13px)/1.55 Consolas, monospace;
+    }
+
+    .engine-arrow {
+      display: grid;
+      place-items: center;
+      color: var(--blue);
+      font-size: clamp(26px, 2vw, 40px);
+    }
+
+    .fork {
+      display: grid;
+      gap: 1vh;
+    }
+
+    .fork-item {
+      padding: 1.1vh 0.85vw;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .fork-item strong {
+      display: block;
+      margin-bottom: 0.35vh;
+      font-size: clamp(11px, 0.8vw, 15px);
+    }
+
+    .fork-item small {
+      color: var(--muted);
+      font-size: clamp(9px, 0.67vw, 13px);
+      line-height: 1.4;
+    }
+
+    .output-jmx {
+      margin-top: 1vh;
+      padding: 1.1vh 0.8vw;
+      border: 1px dashed var(--green);
+      border-radius: 12px;
+      color: #16643f;
+      background: #edfbf4;
+      font-size: clamp(11px, 0.79vw, 15px);
+      font-weight: 800;
+      text-align: center;
+    }
+
+    /* Slide 3 */
+    .case-pipeline {
+      display: grid;
+      grid-template-columns: 1fr 58px 1.15fr 58px 1fr;
+      align-items: center;
+      margin-bottom: 1.8vh;
+    }
+
+    .case-card {
+      min-height: 16vh;
+      padding: 1.65vh 1.25vw;
+      border-top: 4px solid var(--accent);
+    }
+
+    .case-card h3 {
+      margin: 0 0 0.9vh;
+      color: var(--accent);
+      font-size: clamp(15px, 1.08vw, 21px);
+    }
+
+    .case-card p {
+      margin: 0.4vh 0;
+      color: var(--muted);
+      font-size: clamp(11px, 0.78vw, 15px);
+      line-height: 1.45;
+    }
+
+    .case-arrow {
+      color: var(--blue);
+      font-size: clamp(28px, 2.6vw, 50px);
+      text-align: center;
+    }
+
+    .case-bottom {
+      display: grid;
+      grid-template-columns: 1.02fr 0.88fr 1.12fr;
+      gap: 1.4vw;
+    }
+
+    .mini-panel {
+      min-height: 35vh;
+      padding: 1.7vh 1.2vw;
+    }
+
+    .business-chain {
+      display: grid;
+      gap: 0.65vh;
+      margin-top: 1.2vh;
+    }
+
+    .chain-step {
+      display: flex;
+      align-items: center;
+      gap: 0.7vw;
+      padding: 0.68vh 0.75vw;
+      border-radius: 10px;
+      background: #f3f7fc;
+      color: #26405f;
+      font-size: clamp(11px, 0.77vw, 15px);
+      font-weight: 700;
+    }
+
+    .chain-step b {
+      display: grid;
+      width: 23px;
+      height: 23px;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      background: var(--blue);
+      font-size: 11px;
+    }
+
+    .param-line {
+      position: relative;
+      margin-top: 1.5vh;
+      padding: 1.2vh 0.8vw;
+      border-radius: 12px;
+      background: #effbf9;
+      text-align: center;
+    }
+
+    .param-line strong {
+      display: block;
+      margin: 0.6vh 0;
+      color: #087b83;
+      font: 800 clamp(14px, 1.2vw, 23px)/1 Consolas, monospace;
+    }
+
+    .param-line span {
+      color: var(--muted);
+      font-size: clamp(10px, 0.7vw, 13px);
+    }
+
+    .use-list {
+      display: grid;
+      gap: 0.8vh;
+      margin-top: 1.15vh;
+    }
+
+    .use-list div {
+      padding: 0.75vh 0.6vw;
+      border-radius: 9px;
+      border: 1px solid #c8ece8;
+      color: #1b5b60;
+      background: white;
+      font-size: clamp(10px, 0.72vw, 14px);
+      text-align: center;
+    }
+
+    .finding-list {
+      display: grid;
+      gap: 0.75vh;
+      margin-top: 1.1vh;
+    }
+
+    .finding {
+      display: grid;
+      grid-template-columns: 25px 1fr;
+      gap: 0.6vw;
+      align-items: center;
+      padding: 0.68vh 0.65vw;
+      border-radius: 10px;
+      color: #354963;
+      background: #fff6f3;
+      font-size: clamp(10px, 0.7vw, 14px);
+    }
+
+    .finding i {
+      display: grid;
+      width: 23px;
+      height: 23px;
+      place-items: center;
+      border-radius: 7px;
+      color: #fff;
+      background: var(--red);
+      font-style: normal;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    /* Navigation */
+    .nav {
+      position: fixed;
+      left: 50%;
+      bottom: 1.9vh;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 0.75vw;
+      padding: 0.7vh 0.75vw;
+      border: 1px solid rgba(182, 198, 219, 0.86);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 8px 28px rgba(30, 55, 90, 0.16);
+      transform: translateX(-50%);
+      backdrop-filter: blur(10px);
+    }
+
+    .nav button {
+      display: grid;
+      min-width: 35px;
+      height: 32px;
+      place-items: center;
+      border: 0;
+      border-radius: 999px;
+      color: var(--ink);
+      background: #eef3f9;
+      cursor: pointer;
+      font: 800 14px/1 inherit;
+    }
+
+    .nav button:hover { background: #dfe9f6; }
+
+    .nav .dot {
+      min-width: 9px;
+      width: 9px;
+      height: 9px;
+      padding: 0;
+      background: #c6d2e2;
+    }
+
+    .nav .dot.active {
+      width: 28px;
+      background: var(--blue);
+    }
+
+    .counter {
+      min-width: 42px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .hint {
+      position: fixed;
+      right: 2.2vw;
+      bottom: 2.3vh;
+      z-index: 20;
+      color: #718098;
+      font-size: clamp(10px, 0.68vw, 13px);
+    }
+
+    @media (max-aspect-ratio: 4/3) {
+      .slide { padding-left: 3vw; padding-right: 3vw; }
+      .flow-card { padding-left: 0.8vw; padding-right: 0.8vw; }
+      .main-flow { gap: 1.3vw; }
+      .flow-card:not(:last-child)::after { right: -1.2vw; }
+    }
+
+    @media print {
+      html, body { overflow: visible; background: white; }
+      .slide {
+        position: relative;
+        width: 297mm;
+        height: 167mm;
+        opacity: 1;
+        transform: none;
+        page-break-after: always;
+      }
+      .nav, .hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="JMeter Agent 项目流程演示">
+    <section class="slide active" data-section="PROCESS · 01" aria-labelledby="slide-1-title">
+      <p class="eyebrow">项目主流程</p>
+      <h1 id="slide-1-title">从业务录制到 JMX 校验</h1>
+      <p class="subtitle">Agent 负责组织任务，Skill 提供 JMeter 流程、规则和 Python 工具</p>
+
+      <div class="main-flow">
+        <article class="flow-card" style="--accent: var(--blue)">
+          <div class="step-no">STEP 01 · 输入</div>
+          <h2>录制业务操作</h2>
+          <p>在系统中完成业务操作，并使用 Fiddler 录制。</p>
+          <span class="tag">SAZ + 压测需求</span>
+        </article>
+
+        <article class="flow-card" style="--accent: #5b67d8">
+          <div class="step-no">STEP 02 · Agent</div>
+          <h2>分析与组织</h2>
+          <p>JMX Generator Agent 读取输入并调用 Skill。</p>
+          <span class="tag">Generator Agent</span>
+        </article>
+
+        <article class="flow-card" style="--accent: var(--cyan)">
+          <div class="step-no">STEP 03 · Skill</div>
+          <h2>还原业务流程</h2>
+          <ul>
+            <li>解析 SAZ、过滤无关流量</li>
+            <li>识别参数依赖和事务</li>
+          </ul>
+          <span class="tag">文字版 JMeter 架构</span>
+        </article>
+
+        <article class="flow-card" style="--accent: var(--orange)">
+          <div class="step-no">STEP 04 · 确认</div>
+          <h2>人工确认架构</h2>
+          <p>检查业务顺序、事务划分、参数来源和压测配置。</p>
+          <span class="tag">确认后继续</span>
+        </article>
+
+        <article class="flow-card" style="--accent: var(--green)">
+          <div class="step-no">STEP 05 · 生成</div>
+          <h2>动态生成 JMX</h2>
+          <p>Generator Agent 调用 Skill 中的 Python 脚本。</p>
+          <span class="tag">可执行 JMX</span>
+        </article>
+
+        <article class="flow-card" style="--accent: var(--red)">
+          <div class="step-no">STEP 06 · 检查</div>
+          <h2>独立校验</h2>
+          <p>Validator Agent 调用 Skill 的检查规则并输出报告。</p>
+          <span class="tag">Validation Report</span>
+        </article>
+      </div>
+
+      <div class="approval-loop panel">
+        <div>
+          <strong>文字架构需要调整</strong>
+          <p>返回 Generator Agent 修改，用户再次确认。</p>
+        </div>
+        <div class="loop-arrow">↺</div>
+        <div>
+          <strong>校验发现问题</strong>
+          <p>根据报告修改 JMX，再交给 Validator Agent 复查。</p>
+        </div>
+      </div>
+
+      <div class="roles">
+        <div class="role" style="--accent: var(--blue)"><strong>用户</strong><br><small>提供录制结果、压测需求和业务确认</small></div>
+        <div class="role" style="--accent: #5b67d8"><strong>Agent</strong><br><small>理解任务、组织生成、分工检查</small></div>
+        <div class="role" style="--accent: var(--cyan)"><strong>Skill</strong><br><small>提供固定流程、专业规则和 Python 工具</small></div>
+      </div>
+    </section>
+
+    <section class="slide" data-section="SKILL · 02" aria-labelledby="slide-2-title">
+      <p class="eyebrow">Skill 内部架构</p>
+      <h1 id="slide-2-title">Skill 如何把需求转成 JMX</h1>
+      <p class="subtitle">先生成组装参数，再由 Python 动态创建 JMeter XML 组件</p>
+
+      <div class="skill-layout">
+        <aside class="skill-stack panel">
+          <div class="section-label"><span>1</span> Skill 包含三层能力</div>
+          <div class="layer" data-level="流程" style="--layer-bg:#edf4ff;--layer-border:#c5dafb;--layer-color:#2268e9">
+            <h3>处理流程</h3>
+            <p>SAZ 解析 → 请求过滤 → 参数分类<br>文字架构 → JMX 生成 → 质量检查</p>
+          </div>
+          <div class="layer" data-level="规则" style="--layer-bg:#edfbfa;--layer-border:#c2ebe7;--layer-color:#078992">
+            <h3>JMeter 专业规则</h3>
+            <p>事务、参数化、提取器、断言、CSV、WebForms、Multipart 和动态测试数据。</p>
+          </div>
+          <div class="layer" data-level="工具" style="--layer-bg:#fff6ec;--layer-border:#f4d5ad;--layer-color:#bf6b13">
+            <h3>工具和参考资料</h3>
+            <p>Python 生成脚本、JMX 模板、组件与函数参考、最佳实践和示例。</p>
+          </div>
+          <div class="callout">
+            <strong>Agent 调用 Skill 的方式</strong><br>
+            Agent 根据当前任务选择 Skill 中的流程和规则，再调用 Python 工具生成或检查具体产物。
+          </div>
+        </aside>
+
+        <section class="engine panel">
+          <div class="section-label"><span>2</span> JMX 动态生成原理</div>
+          <div class="engine-flow">
+            <div class="engine-box">
+              <h3>输入与组装参数</h3>
+              <ul>
+                <li>已确认的文字架构</li>
+                <li>并发数、循环次数、Ramp-up</li>
+                <li>请求、事务和参数依赖</li>
+              </ul>
+              <div class="mini-code">threads=5<br>loops=3<br>flow=login,create,workflow</div>
+            </div>
+
+            <div class="engine-arrow">›</div>
+
+            <div class="engine-box">
+              <h3>选择 Python 生成方式</h3>
+              <div class="fork">
+                <div class="fork-item">
+                  <strong>通用结构</strong>
+                  <small>调用 Skill 中已有的通用 Python 生成脚本。</small>
+                </div>
+                <div class="fork-item">
+                  <strong>复杂结构</strong>
+                  <small>AI 按需生成额外的 Python 辅助脚本或组装逻辑。</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="engine-arrow">›</div>
+
+            <div class="engine-box">
+              <h3>动态组装 JMeter XML</h3>
+              <ul>
+                <li>Thread Group / Loop Controller</li>
+                <li>Transaction Controller / Sampler</li>
+                <li>Extractor / Assertion / Timer / CSV</li>
+                <li>写入变量引用和请求关联关系</li>
+              </ul>
+              <div class="output-jmx">输出完整 JMX 文件</div>
+              <p style="margin:1vh 0 0;text-align:center">随后交给 Validator Agent 检查</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="slide" data-section="CASE · 03" aria-labelledby="slide-3-title">
+      <p class="eyebrow">实际案例</p>
+      <h1 id="slide-3-title">PA40 Incident Report 业务脚本</h1>
+      <p class="subtitle">从 Fiddler 录制文件开始，形成文字架构、JMX 和独立校验报告</p>
+
+      <div class="case-pipeline">
+        <article class="case-card panel" style="--accent: var(--blue)">
+          <h3>输入</h3>
+          <p><strong>PA40 Incident Report.saz</strong></p>
+          <p>5 个并发用户 · 每人循环 3 次</p>
+          <p>预期创建 15 份业务报告</p>
+        </article>
+        <div class="case-arrow">→</div>
+        <article class="case-card panel" style="--accent: var(--cyan)">
+          <h3>Agent + Skill 处理</h3>
+          <p>还原登录、创建、保存和 Workflow 链路</p>
+          <p>识别 report_id、Token、人员和车辆等动态数据</p>
+          <p>生成已确认的文字版 JMeter 架构</p>
+        </article>
+        <div class="case-arrow">→</div>
+        <article class="case-card panel" style="--accent: var(--green)">
+          <h3>输出</h3>
+          <p><strong>JMeter JMX 测试脚本</strong></p>
+          <p>CSV 数据文件与动态参数配置</p>
+          <p><strong>Validation Report</strong></p>
+        </article>
+      </div>
+
+      <div class="case-bottom">
+        <section class="mini-panel panel">
+          <div class="section-label"><span>A</span> 业务流程还原</div>
+          <div class="business-chain">
+            <div class="chain-step"><b>1</b> 登录系统并建立会话</div>
+            <div class="chain-step"><b>2</b> 创建 Incident Report</div>
+            <div class="chain-step"><b>3</b> 添加人员和车辆信息</div>
+            <div class="chain-step"><b>4</b> 保存 Intake</div>
+            <div class="chain-step"><b>5</b> 提交 Workflow</div>
+          </div>
+        </section>
+
+        <section class="mini-panel panel">
+          <div class="section-label"><span>B</span> 参数前后关联</div>
+          <div class="param-line">
+            <span>创建报告响应</span>
+            <strong>report_id</strong>
+            <span>JSON Extractor 动态提取</span>
+          </div>
+          <div class="use-list">
+            <div>保存报告时使用</div>
+            <div>提交 Workflow 时使用</div>
+            <div>最终结果验证时使用</div>
+          </div>
+        </section>
+
+        <section class="mini-panel panel">
+          <div class="section-label"><span>C</span> Validator 检查内容</div>
+          <div class="finding-list">
+            <div class="finding"><i>!</i><span>变量被引用，但没有定义或提取</span></div>
+            <div class="finding"><i>!</i><span>提取出的变量没有被后续请求使用</span></div>
+            <div class="finding"><i>!</i><span>用户 ID、业务 ID 或 Token 被写死</span></div>
+            <div class="finding"><i>!</i><span>变量命名不一致或 Workflow 固定值存在风险</span></div>
+            <div class="finding"><i>!</i><span>JSR223 是否可以换成标准提取器</span></div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <nav class="nav" aria-label="演示导航">
+    <button id="prev" type="button" aria-label="上一页">←</button>
+    <button class="dot active" type="button" data-slide="0" aria-label="第1页"></button>
+    <button class="dot" type="button" data-slide="1" aria-label="第2页"></button>
+    <button class="dot" type="button" data-slide="2" aria-label="第3页"></button>
+    <span class="counter" id="counter">1 / 3</span>
+    <button id="next" type="button" aria-label="下一页">→</button>
+    <button id="fullscreen" type="button" aria-label="全屏">⛶</button>
+  </nav>
+  <div class="hint">方向键切换 · F 全屏 · Esc 退出</div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const dots = [...document.querySelectorAll('.dot')];
+    const counter = document.getElementById('counter');
+    let current = 0;
+
+    function showSlide(index) {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
+      dots.forEach((dot, i) => dot.classList.toggle('active', i === current));
+      counter.textContent = `${current + 1} / ${slides.length}`;
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+
+    document.getElementById('prev').addEventListener('click', () => showSlide(current - 1));
+    document.getElementById('next').addEventListener('click', () => showSlide(current + 1));
+    document.getElementById('fullscreen').addEventListener('click', toggleFullscreen);
+    dots.forEach(dot => dot.addEventListener('click', () => showSlide(Number(dot.dataset.slide))));
+
+    document.addEventListener('keydown', event => {
+      if (['ArrowRight', 'PageDown', ' '].includes(event.key)) showSlide(current + 1);
+      if (['ArrowLeft', 'PageUp'].includes(event.key)) showSlide(current - 1);
+      if (event.key.toLowerCase() === 'f') toggleFullscreen();
+      if (event.key === 'Home') showSlide(0);
+      if (event.key === 'End') showSlide(slides.length - 1);
+    });
+  </script>
+</body>
+</html>

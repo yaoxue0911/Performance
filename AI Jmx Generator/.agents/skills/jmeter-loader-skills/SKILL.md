@@ -5,7 +5,7 @@ description: "Automates JMeter load testing: JMX generation (template + dynamic 
 
 # JMeter 压测自动化生成脚本技能
 
-🚀 版本: 2.0.0
+🚀 版本: 1.0.0
 
 ## 技能概述
 
@@ -75,9 +75,10 @@ description: "Automates JMeter load testing: JMX generation (template + dynamic 
 1. 测试计划需包含Thread Group、Loop Controller、Transaction Controller、Sampler、Extractor、Assertion、Timer、Listener等必须的元件
 2. 每个单独的事务要包在 TransactionController 里
 2. 每个请求的命名格式为 <GET OR POST> <请求路径>，例如：GET /RMS/AspSoft/MasterName，不要加序号。
-3. 在每个请求下列出包含的参数化决策及提取器,说明是从 response 中提取、从 CSV 文件中提取，还是使用动态随机值或静态值；说明要从从 response 中提取哪些值。
-4. 禁止为每个 HTTP Sampler 默认添加 Response Assertion。只有POST请求和用户明确指定需要断言的请求能够添加断言。
-
+3. 在每个请求下列出包含的参数化决策及提取器,说明是从 response 中提取、从 CSV 文件中提取，还是使用动态随机值，使用静态值或为空则无需列出；说明要从 response 中提取哪些值。
+4. 断言规则：
+   - 列举出所有推荐添加断言的请求，说明断言类型和内容，让用户决定是否添加。
+   - 只有用户明确指定需要断言的请求能够添加断言，若无特殊说明，不要添加任何断言。
 
 #### 参数化规则
 
@@ -93,7 +94,8 @@ description: "Automates JMeter load testing: JMX generation (template + dynamic 
 - 但仍然必须对每个 part 内容做参数化替换。
 - 至少替换：case_id、report_id、template_id、FormGUID、STX、__RequestVerificationToken以及在该请求之前出现过的参数。
 - 禁止因为 multipart 是 raw body 就跳过字段级参数化。
-5. 在 JMeter 测试计划文字版架构中，如果saz文件中对应的请求参数有值，则必须对每个参数说明。
+5. 遇到请求体为Json格式时，在Body Data中填写请求，不要在Parameters中填写参数。
+
 
 ##### 参数化优先级
 在决定某个请求参数如何取值时，按以下优先级处理：
@@ -106,10 +108,11 @@ description: "Automates JMeter load testing: JMX generation (template + dynamic 
 ##### 从前置 response 中提取值的规则
 1. 一类请求是在前置请求中返回了一个列表，该列表包含多个值，需要从中**随机提取**一个值作为后续请求的参数。
 - 例如inbox页面的case_id。
+- 随机提取使用提取器Match.No = 0,不要用jsr223 postprocessor。
 2. 另一类请求是在前置请求中返回了一个唯一值，该值需要在后续请求中使用。
 3. ASP.NET WebForms 隐藏字段关联规则
-每次 GET/POST 页面响应后，用 css提取器 提取并回填：__VIEWSTATE，__VIEWSTATEGENERATOR，__EVENTVALIDATION，__RequestVerificationToken, doubleEntryTimeStamp
-后续 POST 必须根据saz文件替换这些字段，且通常 HTTPArgument.always_encode=true。
+每次 GET/POST 页面响应后，仅当响应中存在该参数时，用css提取器提取并回填：__VIEWSTATE，__VIEWSTATEGENERATOR，__EVENTVALIDATION，__RequestVerificationToken, doubleEntryTimeStamp
+后续 POST 必须根据saz文件替换这些字段。
 
 ###### 弹窗选择回填型请求识别规则
 当业务表现为“输入关键字 -> 弹窗列表 -> 选择一条记录 -> 弹窗关闭 -> 主页面字段被回填 -> 保存 POST”时，必须按数据依赖生成 JMX，不能只复制抓包 POST 中的固定值。
@@ -184,13 +187,15 @@ Loop Controller: Business Iteration
 
 ##### 从 csv 中提取值的规则
 1. UserName，RegionID(region_id)，StaffID(staff_id)，UnitID(unit_id)等字段必须从 csv 文件中提取。当saz文件出现这些字段时，生成csv文件放在 JMeter 测试计划同级目录下，脚本中参数值从csv文件中读取。
-
+2. inbox_staff_id应被参数化为当前登录用户的staff_id
 ##### 从saz 文件中提取静态值的规则
 
-以下字段应该使用 SAZ 中的静态值，不能替换，无需参数化。
+1. 以下字段应该使用 SAZ 中的静态值，不能替换，无需参数化。
 
 driver_license_state，driver_license_expire_date，driver_license_expire_date_txtDate
-division_id, inbox_staff_id, inbox_sub_id
+division_id, inbox_sub_id，division_id, device_info, template_id
+
+2. 若无特殊说明，地址(location/address)相关的字段使用静态值。
 
 ### 步骤 2：JMX 测试计划生成
 
@@ -234,10 +239,12 @@ python generate_jmx.py --build --output test.jmx \
 
 **JMX 生成规范**：
 
-1. **参数化要求**：
+1. **强制要求**：
    - 参照步骤 2 生成文字版Jmeter 测试计划
    - 所有压测参数使用 ${__P(propname,default)} 形式，default 为默认值，propname 为属性名。
    - 数据集参数使用 ${__CSVRead(file,variable)} 形式，文件第一行为参数名
+   - 所有的HTTP Request Sampler必须Follow redirects = true。 POST请求若使用Parameters，必须设置 HTTPArgument.always_encode=true。
+   - 当请求头包含“Referer”时，说明这个请求会重定向，要考虑提取器是否应该选择“Main sample and sub-samples”而非“Main sample only”。
 
 2. **必需组件**：
    - **ThreadGroup（线程组）**：
@@ -278,7 +285,7 @@ python generate_jmx.py --build --output test.jmx \
    | 数据提取     | JSON Extractor / Boundary Extractor / Regular Expression Extractor |
    | 实时监控     | Backend Listener（Graphite/InfluxDB）                                |
 
-- 对于POST 请求，尽量使用parameters而不是 body data，使每个参数的"HTTPArgument.always_encode"=true
+- 对于POST 请求，若无特殊规定，尽量使用parameters而不是 body data，使每个参数的"HTTPArgument.always_encode"=true
 - 对于提取器，尽量使用元素的objectname属性进行定位
 
 ## 脚本使用指南
@@ -373,7 +380,7 @@ python generate_jmx.py --template base.jmx --output test.jmx \
 | Boundary Extractor           | 简单边界提取（无需正则）           |
 | Regular Expression Extractor | 通用正则提取                 |
 | CSS Selector Extractor       | HTML 提取（CSS 选择器）       |
-| XPath2 Extractor             | XML/HTML 提取（XPath2，推荐） |
+| XPath Extractor              | XML/HTML 提取（XPath，推荐） |
 
 ### 常用断言
 
@@ -384,7 +391,7 @@ python generate_jmx.py --template base.jmx --output test.jmx \
 | JSON JMESPath Assertion | JMESPath 断言  |
 | Duration Assertion      | 响应时间断言       |
 | Size Assertion          | 响应大小断言       |
-| XPath2 Assertion        | XML 断言（推荐）   |
+
 
 ### 常用定时器
 
