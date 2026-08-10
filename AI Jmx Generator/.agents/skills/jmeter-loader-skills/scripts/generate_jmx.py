@@ -98,7 +98,7 @@ class JMXComponentBuilder:
         return el
 
     @staticmethod
-    def _http_argument(name: str, value: str, use_equals: bool = True, always_encode: bool = False) -> ET.Element:
+    def _http_argument(name: str, value: str, use_equals: bool = True, always_encode: bool = True) -> ET.Element:
         el = ET.Element("elementProp")
         el.set("name", name)
         el.set("elementType", "HTTPArgument")
@@ -265,7 +265,7 @@ class JMXComponentBuilder:
             for p in params:
                 args_coll.append(JMXComponentBuilder._http_argument(
                     p.get("name", ""), p.get("value", ""),
-                    use_equals=True, always_encode=False
+                    use_equals=True, always_encode=True
                 ))
         args_el.append(args_coll)
         el.append(args_el)

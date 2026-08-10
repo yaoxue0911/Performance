@@ -32,6 +32,7 @@ description: "Automates JMeter load testing: JMX generation (template + dynamic 
 | `references/jmx_structure.md`        | JMX XML 结构参考               |
 | `references/sampler_types.md`        | Sampler 类型配置说明             |
 | `references/RIRMS_Add_NIBRS_Report/RIRMS_Add_NIBRS_Report.jmx`        | 可运行的示例jmx             |
+| `references/CAD_Center and MDT.jmx`        | 可运行的示例jmx             |
 
 ## 工作流程
 
@@ -76,9 +77,6 @@ description: "Automates JMeter load testing: JMX generation (template + dynamic 
 2. 每个单独的事务要包在 TransactionController 里
 2. 每个请求的命名格式为 <GET OR POST> <请求路径>，例如：GET /RMS/AspSoft/MasterName，不要加序号。
 3. 在每个请求下列出包含的参数化决策及提取器,说明是从 response 中提取、从 CSV 文件中提取，还是使用动态随机值，使用静态值或为空则无需列出；说明要从 response 中提取哪些值。
-4. 断言规则：
-   - 列举出所有推荐添加断言的请求，说明断言类型和内容，让用户决定是否添加。
-   - 只有用户明确指定需要断言的请求能够添加断言，若无特殊说明，不要添加任何断言。
 
 #### 参数化规则
 
@@ -196,6 +194,10 @@ driver_license_state，driver_license_expire_date，driver_license_expire_date_t
 division_id, inbox_sub_id，division_id, device_info, template_id
 
 2. 若无特殊说明，地址(location/address)相关的字段使用静态值。
+
+#### 断言规则：
+   - 不要添加任何断言。
+   - 列举出所有建议添加断言的请求以及建议添加的断言内容。
 
 ### 步骤 2：JMX 测试计划生成
 
