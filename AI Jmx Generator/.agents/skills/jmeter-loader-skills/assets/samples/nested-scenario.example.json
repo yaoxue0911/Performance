@@ -1,0 +1,83 @@
+{
+  "test_plan": {
+    "name": "Example HTTP Business Flow",
+    "variables": {
+      "target_host": "example.invalid"
+    }
+  },
+  "thread_groups": [
+    {
+      "name": "Example Users",
+      "threads": "${__P(concurrency,10)}",
+      "rampup": "${__P(rampup,10)}",
+      "duration": "${__P(duration,60)}",
+      "on_sample_error": "continue",
+      "children": [
+        {
+          "type": "http_defaults",
+          "host": "${target_host}",
+          "protocol": "https"
+        },
+        {
+          "type": "cookie_manager",
+          "clear_each_iteration": false
+        },
+        {
+          "type": "once_only_controller",
+          "name": "Example Per-Thread Authentication",
+          "children": [
+            {
+              "type": "transaction_controller",
+              "name": "Example Authentication Transaction",
+              "children": [
+                {
+                  "type": "http_sampler",
+                  "name": "GET /example-auth-page",
+                  "method": "GET",
+                  "path": "/example-auth-page"
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /example-auth-submit",
+                  "method": "POST",
+                  "path": "/example-auth-submit"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "loop_controller",
+          "name": "Example Business Iteration",
+          "loops": "${__P(business_loops,1)}",
+          "children": [
+            {
+              "type": "transaction_controller",
+              "name": "Example Business Transaction",
+              "children": [
+                {
+                  "type": "http_sampler",
+                  "name": "POST /example-resource",
+                  "method": "POST",
+                  "path": "/example-resource",
+                  "body": "{\"example\":true}",
+                  "post_body_raw": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "view_results_tree",
+          "name": "View Results Tree (Debug)",
+          "filename": "${__P(debug_result_file,debug.jtl)}"
+        },
+        {
+          "type": "simple_data_writer",
+          "name": "Simple Data Writer (Load)",
+          "filename": "${__P(load_result_file,load.jtl)}"
+        }
+      ]
+    }
+  ]
+}

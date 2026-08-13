@@ -1,294 +1,393 @@
-# PA40 Incident Report 性能测试计划（阶段 1 文字架构）
+# PA40 Incident Report 稳定负载测试计划（阶段 2 已批准架构）
 
-> 数据源：`PA40_Incident report.saz`（90 个有效编号会话）  
-> 阶段限制：本文仅为文字架构；本阶段不创建、修改或验证任何 JMX。  
-> 业务目标：5 个并发用户；每个用户登录一次；每个用户循环创建 3 份 Incident Report；预期成功创建并提交 15 份。
+> 状态：用户已明确批准按本架构生成 JMX。负载、参数化、静态值和断言选择均已冻结；配套 CSV 仍为占位数据，不可真实执行。
 
-## 1. 场景与负载模型
+## 1. 测试目标与输入
 
-| 参数 | 设计值 | 说明 |
-|---|---:|---|
-| protocol | `https` | 来自 SAZ |
-| target_host | `parms42test.csitech.com` | 来自 SAZ；执行前确认仍为授权压测环境 |
-| target_port | `443` | HTTPS 默认端口 |
-| concurrency | `5` | 5 个并发用户 |
-| rampup | `5s`（建议） | 每秒启动约 1 用户，可在生成 JMX 前调整 |
-| Thread Group Loop Count | `1` | 避免登录及外层场景重复 |
-| Business Loop Count | `3` | 每线程创建 3 份 Report |
-| Same user on each iteration | `true` | 一个线程始终使用同一用户和 Cookie 会话 |
-| Scheduler / duration | `false` / 不设 | 本场景按迭代数结束，保证理论创建数为 5×3=15 |
-| On Sample Error | `Continue` | 业务循环内用失败标志和 Flow Control Action 跳过当前 Report；不能用 Start Next Thread Loop，因为 Thread Group Loop Count=1 会结束线程 |
+- 抓包：`Fiddler file/PA40_Incident report.saz`
+- 场景：PA40 Incident Report 端到端稳定负载测试
+- 目标：5 个并发用户持续执行“选择活动案件并新建、保存、提交 Incident Report”的业务循环
+- 目标环境：`https://parms42test.csitech.com:443`
+- 并发线程数：`5`
+- Ramp-up：`5 秒`（已批准）
+- Scheduler duration：`600 秒`（从线程组启动开始计时，包含 ramp-up 和每线程一次的登录）
+- 固定循环次数：无。业务 Loop Controller 设置为 `Forever`，由 600 秒 Scheduler 截止；不沿用旧方案的 3 次循环。
+- 场景类型：稳定负载
 
-说明：这是固定工作量的并发业务场景，不是 10～30 分钟稳定态负载。若要做稳定态测试，应另建按 duration 控制的场景，避免与“每用户恰好创建 3 份”混用。
+## 2. SAZ 业务流摘要
 
-## 2. SAZ 流量筛选
+SAZ 含 90 个会话。保留 52 个能够证明参与认证、页面/控件初始化、唯一性查询、业务保存、报告创建和工作流提交的 HTTP 会话。业务顺序为：
 
-保留：登录/免责声明、Home 与 Inbox 初始化、随机 Case 打开、Police Reports 页及必要 Tab Count、Incident Report 中间页、Victim/Vehicle/PA Charge 控件初始化与保存、CreateIntake、Report 保存、Workflow 提交与最终列表刷新。
+1. 登录并完成 Disclaimer 跳转，每线程仅执行一次。
+2. 打开 My Active Incidents/Cases，随机选择当前账号可见的一个 `case_id`。
+3. 打开案件详情和 Police Report 列表，发起 New Report，取得本轮 `FormGUID`。
+4. 添加 Victim：执行 dropdown/ID Reader 初始化、姓名和 SSN 唯一性查询、地址查询及保存。
+5. 添加 Vehicle：执行 dropdown/ID Reader 初始化、车牌唯一性查询、车型下拉及保存。
+6. 打开 PA Charge 弹窗，从两次候选列表分别随机选择一项并保存两条 NJS/charge。
+7. 根据本轮新建的联系人、车辆、NJS 和案件对象 ID 动态组装对象图，创建 Intake Report，提取新 `report_id`。
+8. 打开并保存 Incident Report，然后按捕获的 `ROUTE1` 流程提交，清理工作流弹窗并刷新报告列表。
+9. 在 600 秒结束前重复步骤 2～8。
 
-排除：CSS、JavaScript、图片、字体等静态资源；3 条 HTTPS `CONNECT`；无业务状态变更的浏览器资源加载。`ShowCountInTab`、Dropdown、地址/映射与局部刷新请求虽不是最终保存接口，但会初始化页面控件、Tab 计数或返回后续保存所需数据，因此保留。随机 `rnd` 不使用抓包常量，统一动态生成。
+## 3. 流量取舍
 
-## 3. JMeter GUI 树形架构
+### 保留
+
+- 登录、LoginRedirect、Index、Disclaimer、RMS/Home。
+- Inbox 列表和案件/Police Report 页面初始化。
+- New Report、middlepage、Victim/Vehicle/NJS popup、dropdown、ID Reader、MasterName 查询。
+- GeoCode、MasterLocation children/common places；它们属于捕获到的地址选择路径。地址保存值仍按参数化规则保持静态，不从 GeoCode 响应动态覆盖。
+- CreateIntake、Intake 保存、工作流选择/保存/清理、最终报告列表刷新。
+
+### 排除
+
+- 会话 10 `GetInboxCaseCountOneTime` 和会话 13/15/21/81/90 `ShowCountInTab`：计数/status 类请求，不是核心业务提交链路。
+- CSS、JavaScript、图片、字体等静态资源。
+- CONNECT 隧道会话。
+- 页面图片（包括 Agency Logo）及其他不影响业务状态的展示资源。
+
+## 4. JMeter 文字版测试树
 
 ```text
-Test Plan: PA40 Incident Report - 5 Users x 3 Reports
-|-- User Defined Variables
-|   |-- protocol = ${__P(protocol,https)}
-|   |-- target_host = ${__P(target_host,parms42test.csitech.com)}
-|   |-- target_port = ${__P(target_port,443)}
-|   |-- division_id = 3                         # SAZ 静态值
-|   |-- template_id = 1318                     # SAZ 静态值
-|   |-- report_type = C                        # SAZ 静态值
-|   |-- indicator_type = 1                    # SAZ 静态值
-|-- HTTP Request Defaults
-|   |-- Protocol/Host/Port = ${protocol}/${target_host}/${target_port}
-|   |-- Implementation = HttpClient4; UTF-8; KeepAlive=true; Follow Redirects=true
-|-- HTTP Cookie Manager
-|   |-- 每线程独立 Cookie；Clear cookies each iteration=false
-|-- HTTP Cache Manager
-|   |-- 每线程独立缓存；Clear cache each iteration=false
-|-- HTTP Header Manager
-|   |-- Accept / Accept-Language / User-Agent（保留业务必要头）
-|   |-- Origin/Referer 按请求上下文设置；AJAX 请求加 X-Requested-With
-|-- CSV Data Set Config: pa40_incident_users.csv
-|   |-- Variables from header = username,password,staff_id,region_id
-|   |-- Recycle on EOF=false; Stop thread on EOF=true; Sharing mode=All threads
-|-- Thread Group: Incident Report Users
-|   |-- Threads = ${__P(concurrency,5)}
-|   |-- Ramp-up = ${__P(rampup,5)}
-|   |-- Loop Count = 1; Same user=true; On Sample Error=Continue
-|   |
-|   |-- Once Only Controller: Login Once Per User
-|   |   |-- Transaction Controller: Login and Disclaimer
-|   |   |   |-- GET /RMS/Login
-|   |   |   |   |-- CSS Extractor: login_csrf, input[name='__RequestVerificationToken']@value
-|   |   |   |-- POST /RMS/Login
-|   |   |   |   |-- LoginId=${username}; Password=${password}; __RequestVerificationToken=${login_csrf}
-|   |   |   |   |-- 302 链由 Follow Redirects 跟随至 DisclaimerRedirect
-|   |   |   |   |-- CSS Extractor: disclaimer_csrf；来源为 POST Login 重定向链中的 `/RMS/DisclaimerRedirect?division_id=3` HTML（SAZ session 05）
-|   |   |   |   |   Apply to=Main sample and sub-samples；Selector=input[name='__RequestVerificationToken']@value；Default=NOT_FOUND
-|   |   |   |   |-- 独立 Disclaimer.htm（SAZ session 06）不含 token，不作为 token 来源；提取失败则停止当前线程登录流程
-|   |   |   |-- GET /RMS/AspSoft/Disclaimer/Disclaimer.htm
-|   |   |   |-- POST /RMS/DisclaimerRedirect?handler=Jump
-|   |   |   |   |-- __RequestVerificationToken=${disclaimer_csrf}
-|   |   |   |-- GET /RMS/Home?division_id=${division_id}
-|   |   |   |   |-- inbox_staff_id 后续固定使用当前 CSV 的 ${staff_id}
-|   |   |   |-- POST /RMS/Aspsoft/HomeHandler/GetInboxCaseCountOneTime
-|   |
-|   |-- Loop Controller: Create Incident Report
-|   |   |-- Loop Count = ${__P(report_loops,3)}
-|   |   |-- User Parameters: Generate Per-Report Dynamic Data
-|   |   |   |-- Update Once Per Iteration = true（同一 Report 迭代内值保持稳定）
-|   |   |   |-- firstName = TEST${__Random(1000,9999)}
-|   |   |   |-- lastName = TEST${__Random(1000,9999)}
-|   |   |   |-- ssn = ${__Random(100,999)}-${__Random(10,99)}-${__Random(1000,9999)}
-|   |   |   |-- plateNo = P${__Random(100000,999999)}
-|   |   |   |-- narrative = PERF-${username}-${__threadNum}-${__jm__Create Incident Report__idx}-${__time(yyyyMMddHHmmssSSS)}
-|   |   |   |-- iteration_failed = false
-|   |   |   |-- victim_name_rnd = ${__time()}${__Random(100000,999999)}
-|   |   |   |-- victim_ssn_rnd = ${__time()}${__Random(100000,999999)}
-|   |   |   |-- vehicle_mn_rnd = ${__time()}${__Random(100000,999999)}
-|   |   |   |-- request_rnd = ${__time()}${__Random(100000,999999)}
-|   |   |-- Simple Controller: Correlation Failure Check（复制到每个关键提取点之后）
-|   |   |   |-- 提取值为空或等于 NOT_FOUND 时设置 iteration_failed=true
-|   |   |   |-- If Controller: ${__groovy(vars.get('iteration_failed') == 'true')}
-|   |   |       |-- Flow Control Action: Go to next iteration of Current Loop
-|   |   |
-|   |   |-- Transaction Controller: Select Active Case
-|   |   |   |-- GET /RMS/inbox/list
-|   |   |   |   |-- Uniform Random Timer（仅挂在本 GET 下）：300ms offset + 0~700ms
-|   |   |   |   |-- inbox_staff_id=${staff_id}; inbox_sub_id=10030101; page_size=100
-|   |   |   |   |-- Regex Extractor: case_id from inquireIncidentSummary links; Match No.=0（随机）
-|   |   |   |-- GET /RMS/AspSoft/Dispatcher?nextPID=inquireIncidentSummary&case_id=${case_id}
-|   |   |   |-- POST /RMS/AspSoft/EngineService/ShowCountInTab
-|   |   |   |   |-- case_id=${case_id}; division_id=${division_id}; currentUrl 使用本轮 Case URL
-|   |   |
-|   |   |-- Transaction Controller: Open New Incident Report
-|   |   |   |-- GET /RMS/Aspsoft/Dispatcher?nextPID=listPoliceReport
-|   |   |   |   |-- Uniform Random Timer（仅作用于本次点击）：${__P(think_time_min_ms,300)} + 0~${__P(think_time_range_ms,700)}ms
-|   |   |   |   |-- case_id=${case_id}; division_id=${division_id}; report_type=C; indicator_type=1
-|   |   |   |   |-- CSS Extractors（POST 必需）: police_csrf, police_doubleEntryTimeStamp；Default=NOT_FOUND
-|   |   |   |   |-- 任一失败即 iteration_failed=true，并跳下一业务迭代；不无条件提交空值
-|   |   |   |-- POST /RMS/AspSoft/EngineService/ShowCountInTab
-|   |   |   |-- POST /RMS/Aspsoft/Dispatcher?nextPID=listPoliceReport
-|   |   |   |   |-- template_id=${template_id}; submit_button=New Report
-|   |   |   |   |-- doubleEntryTimeStamp=${police_doubleEntryTimeStamp}; token=${police_csrf}
-|   |   |   |   |-- Follow redirect 到 IntakeForm/middlepage
-|   |   |   |   |-- Regex Extractor: FormGUID；Field=Response Headers；Apply to=Main sample and sub-samples
-|   |   |   |   |   Regex=`(?i)Location:\\s*[^\\r\\n]*[?&]FormGUID=([^&\\r\\n]+)`；Default=NOT_FOUND
-|   |   |   |   |-- FormGUID 提取失败时 iteration_failed=true，跳下一业务迭代
-|   |   |   |   |-- CSS Extractor: middle_csrf（最终 middlepage 响应）
-|   |   |   |-- POST /RMS/AspSoft/EngineService/ShowCountInTab
-|   |   |
-|   |   |-- Transaction Controller: Add Victim
-|   |   |   |-- GET /RMS/aspsoft/popupdispatcher?nextPID=addCaseVW
-|   |   |   |   |-- Uniform Random Timer（仅挂在本 GET 下，模拟点击 Add Victim）
-|   |   |   |   |-- case_id=${case_id}; template_id=${template_id}; report_id=0; Form context=${FormGUID}
-|   |   |   |   |-- CSS Extractors: victim_csrf, victim_doubleEntryTimeStamp
-|   |   |   |   |-- Regex Extractor: mapping_key；唯一父 sampler=本 Add Victim GET（SAZ session 22）
-|   |   |   |   |   Field=Body；Regex=`sessionStorage\\.setItem\\("MappingKey",\\s*"([^"]+)"`；Main sample only；Default=NOT_FOUND
-|   |   |   |   |-- mapping_key 提取失败则 iteration_failed=true，跳下一业务迭代
-|   |   |   |-- POST /RMS/aspsoft/EngineService/Dropdown        # municipality/control init
-|   |   |   |-- POST /RMS/aspsoft/EngineService/Dropdown        # other municipality init
-|   |   |   |-- POST /RMS/include/RmsData/PostIDReader?action=IDREADEREABLE
-|   |   |   |-- POST /RMS/AspSoft/MasterName?action=setsession   # MN_rnd=${victim_name_rnd}
-|   |   |   |-- GET /RMS/AspSoft/MasterName                    # last_name=${lastName}, first_name=${firstName}
-|   |   |   |-- POST /RMS/AspSoft/MasterName?action=removesession # MN_rnd=${victim_name_rnd}
-|   |   |   |-- POST /RMS/AspSoft/MasterName?action=setsession   # MN_rnd=${victim_ssn_rnd}
-|   |   |   |-- GET /RMS/AspSoft/MasterName                    # ssn=${ssn}
-|   |   |   |-- POST /RMS/AspSoft/MasterName?action=removesession # MN_rnd=${victim_ssn_rnd}
-|   |   |   |-- GET /InfoMapping/api/GisSvc/GeoCode
-|   |   |   |   |-- regionId=${region_id}; csi-key=${mapping_key}; address query 使用 SAZ 静态地址
-|   |   |   |   |-- JSON Extractors: 精确选择 street1='6 ACORN BLVD' 的 location_id/longitude/latitude/municipality 等
-|   |   |   |-- GET /InfoMapping/api/gissvc/GetMasterLocationChildren
-|   |   |   |-- GET /InfoMapping/api/gissvc/GetCommonPlaces
-|   |   |   |-- POST /RMS/aspsoft/EngineService/Dropdown
-|   |   |   |-- POST /RMS/aspsoft/popupdispatcher?nextPID=addCaseVW
-|   |   |   |   |-- first/last/ssn 使用同一组动态变量；case_id=${case_id}
-|   |   |   |   |-- 地址字段保持 SAZ 值，ID/坐标使用 GeoCode 提取值；sex/race/ethnicity 等保持 SAZ 静态值
-|   |   |   |   |-- token=${victim_csrf}; timestamp=${victim_doubleEntryTimeStamp}
-|   |   |   |-- GET /RMS/Aspsoft/IntakeForm/middlepage?handler=partialrefresh
-|   |   |       |-- Regex/CSS Extractors: victim_person_id, victim_contact_id, victim_location_id（objectname/master_id_list）
-|   |   |
-|   |   |-- Transaction Controller: Add Vehicle
-|   |   |   |-- GET /RMS/aspsoft/popupdispatcher?nextPID=addCaseVehicle
-|   |   |   |   |-- Uniform Random Timer（仅挂在本 GET 下，模拟点击 Add Vehicle）
-|   |   |   |   |-- CSS Extractors: vehicle_csrf, vehicle_doubleEntryTimeStamp
-|   |   |   |-- POST /RMS/aspsoft/EngineService/Dropdown
-|   |   |   |-- POST /RMS/include/RmsData/PostIDReader?action=IDREADEREABLE
-|   |   |   |-- POST /RMS/AspSoft/MasterName?action=setsession   # MN_rnd=${vehicle_mn_rnd}
-|   |   |   |-- GET /RMS/AspSoft/MasterName                    # plate_no=${plateNo}
-|   |   |   |-- POST /RMS/AspSoft/MasterName?action=removesession # MN_rnd=${vehicle_mn_rnd}
-|   |   |   |-- POST /RMS/aspsoft/EngineService/Dropdown        # make=AUDI -> model list
-|   |   |   |-- POST /RMS/aspsoft/popupdispatcher?nextPID=addCaseVehicle
-|   |   |   |   |-- plate_no=${plateNo}; make/model 等使用 SAZ 静态值；case_id=${case_id}
-|   |   |   |   |-- token=${vehicle_csrf}; timestamp=${vehicle_doubleEntryTimeStamp}
-|   |   |   |-- GET /RMS/Aspsoft/IntakeForm/middlepage?handler=partialrefresh
-|   |   |       |-- Regex/CSS Extractors: vehicle_id, case_vehicle_id（objectname/master_id_list）
-|   |   |
-|   |   |-- Transaction Controller: Add Two PA Charges
-|   |   |   |-- GET /RMS/aspsoft/popupdispatcher?nextPID=addCaseNJSCode
-|   |   |   |   |-- Uniform Random Timer（仅挂在本 GET 下，模拟点击 Add Charge）
-|   |   |   |   |-- CSS Extractors: charge_csrf, charge_doubleEntryTimeStamp
-|   |   |   |-- GET /RMS/Aspsoft/PopUpDispatcher?nextPID=listPopupCharge_PA&charge=4
-|   |   |   |   |-- Regex Extractor charge1_raw: hidden return_value; Match No.=0（随机）
-|   |   |   |   |-- JSR223 PostProcessor: HTML/URL decode 后按 `~` 拆为 charge1_code/description/grade...
-|   |   |   |-- GET /RMS/Aspsoft/PopUpDispatcher?nextPID=listPopupCharge_PA&charge=3
-|   |   |   |   |-- Regex Extractor charge2_raw: hidden return_value; Match No.=0（随机）
-|   |   |   |   |-- JSR223 PostProcessor: 解码并拆为独立的 charge2_* 变量
-|   |   |   |-- POST /RMS/aspsoft/popupdispatcher?nextPID=addCaseNJSCode
-|   |   |   |   |-- 两行控件分别使用 charge1_* 与 charge2_*，禁止混用
-|   |   |   |   |-- token=${charge_csrf}; timestamp=${charge_doubleEntryTimeStamp}
-|   |   |   |-- GET /RMS/Aspsoft/IntakeForm/middlepage?handler=partialrefresh
-|   |   |       |-- Extractors: inv_njs_id_1, inv_njs_id_2
-|   |   |
-|   |   |-- Transaction Controller: Create Incident Report
-|   |   |   |-- JSR223 PreProcessor: Build Intake Object Payload
-|   |   |   |   |-- 使用 victim/vehicle/charge/case 的已提取 ID 构造 objects_parameter 与 objects_data_index
-|   |   |   |   |-- 不在 UDV/JMX XML 中保存控制字符；Groovy 显式执行 `char stx=(char)0x02`、`char etx=(char)0x03`
-|   |   |   |   |-- 用 stx/etx 拼接原始对象串，按 UTF-8 Base64，再 URL encode 一次；不得复用 SAZ 固定串
-|   |   |   |-- POST /RMS/Aspsoft/IntakeForm/middlepage?handler=CreateIntake
-|   |   |   |   |-- Uniform Random Timer（仅挂在本 POST 下，模拟点击 Create）
-|   |   |   |   |-- header RequestVerificationToken=${middle_csrf}
-|   |   |   |   |-- template_id=${template_id}; report_id=0; dynamic object payloads
-|   |   |   |   |-- JSON Extractor: report_id（仅保留后续使用字段；Default=NOT_FOUND）
-|   |   |   |   |-- JSON Assertion [Enabled]: CreateIntake Message OK
-|   |   |   |   |   |-- JSON Path=$.message; Expected Value=OK; Match as regular expression=false
-|   |   |   |   |-- JSON Assertion [Enabled]: CreateIntake Report ID Is Positive Integer
-|   |   |   |       |-- JSON Path=$.report_id; Expected Value=`^[1-9][0-9]*$`; Match as regular expression=true
-|   |   |   |-- GET /RMS/Aspsoft/IntakeForm/Intake
-|   |   |       |-- case_id=${case_id}; template_id=${template_id}; report_id=${report_id}
-|   |   |       |-- CSS Extractor: intake_csrf
-|   |   |
-|   |   |-- Transaction Controller: Save and Submit Workflow
-|   |   |   |-- POST /RMS/AspSoft/IntakeForm/Intake?action=auto_confirm&save_data=1
-|   |   |   |   |-- Uniform Random Timer（仅挂在本 POST 下，模拟点击 Save）
-|   |   |   |   |-- case_id=${case_id}; template_id=${template_id}; report_id=${report_id}
-|   |   |   |   |-- narrative=${narrative}; hdnReportID=${report_id}; hdnCaseID=${case_id}
-|   |   |   |   |-- RequestVerificationToken=${intake_csrf}
-|   |   |   |   |-- Response Assertion [Enabled]: Auto Confirm HTTP 200
-|   |   |   |   |   |-- Field to Test=Response Code; Pattern Matching Rule=Equals; Pattern=200
-|   |   |   |   |-- Response Assertion [Enabled]: Auto Confirm Body WF
-|   |   |   |       |-- Field to Test=Response Text; Pattern Matching Rule=Matches; Pattern=`(?s)^\\s*WF\\s*$`
-|   |   |   |-- GET /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow
-|   |   |   |   |-- report_ids=${report_id}
-|   |   |   |   |-- CSS Extractor: workflow_csrf
-|   |   |   |-- POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow?handler=ReportNextStepSelectedChanged
-|   |   |   |   |-- reportIds=${report_id}; nextStep=ROUTE1; RequestVerificationToken=${workflow_csrf}
-|   |   |   |-- POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow?handler=SaveWorkFlow
-|   |   |   |   |-- reportIds=${report_id}; route/status 参数沿用 SAZ；token=${workflow_csrf}
-|   |   |   |-- POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow?handler=Clear
-|   |   |   |   |-- multipart boundary/Content-Disposition/body 分段保持 SAZ 结构
-|   |   |   |   |-- report_ids=${report_id}; __RequestVerificationToken=${workflow_csrf}
-|   |   |   |-- GET /RMS/Aspsoft/Dispatcher?nextPID=listPoliceReport
-|   |   |   |-- POST /RMS/AspSoft/EngineService/ShowCountInTab
-|   |
-|   |-- Listener: Simple Data Writer / Result Collector
-|       |-- 输出 ${__P(result_file,PA40_Incident_Report.jtl)}
-|       |-- CSV JTL；保存 timeStamp,elapsed,label,responseCode,responseMessage,threadName,
-|           dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,
-|           Latency,IdleTime,Connect
+Test Plan: PA40 Incident Report - 5 Users / 600 Seconds
+├── User Defined Variables
+│   ├── target_host = parms42test.csitech.com
+│   ├── target_port = 443
+│   ├── protocol = https
+│   ├── division_id = 3
+│   ├── inbox_sub_id = 10030101
+│   ├── template_id = 1318
+│   ├── report_type = C
+│   ├── indicator_type = 1
+│   └── master_location_id = 19198
+├── HTTP Request Defaults
+│   ├── Protocol = ${protocol}
+│   ├── Server = ${target_host}
+│   ├── Port = ${target_port}
+│   ├── UTF-8
+│   └── Follow Redirects = false（保留抓包中的显式 302/GET 顺序）
+├── HTTP Cookie Manager
+│   └── Clear cookies each iteration = false
+├── HTTP Cache Manager
+├── HTTP Header Manager
+│   └── 按各捕获请求保留 Accept、Content-Type、Origin、Referer、X-Requested-With；不写死 Cookie
+├── CSV Data Set Config: pa40_incident_users.csv
+│   ├── Variable names = username,password,staff_id,region_id
+│   ├── Recycle on EOF = false
+│   ├── Stop thread on EOF = true
+│   └── Sharing mode = All threads
+├── Thread Group: Stable Load
+│   ├── Number of Threads = 5
+│   ├── Ramp-up = 5 seconds
+│   ├── Thread Group loop count = 1
+│   ├── Scheduler = enabled
+│   ├── Duration = 600 seconds
+│   └── Action after sampler error = Continue（由下方关联失败守卫控制当前业务迭代）
+│       ├── Once Only Controller: Per-thread authentication and initialization
+│       │   └── Transaction Controller: Login and Disclaimer
+│       │       ├── GET /RMS/Login
+│       │       │   └── CSS Selector Extractor: login_csrf
+│       │       │       input[name="__RequestVerificationToken"] / value / Match 1
+│       │       ├── POST /RMS/Login
+│       │       │   └── LoginId=${username}, Password=${password}, __RequestVerificationToken=${login_csrf}
+│       │       ├── GET /RMS/LoginRedirect
+│       │       ├── GET /RMS/Index
+│       │       ├── GET /RMS/DisclaimerRedirect
+│       │       │   ├── division_id=${division_id}
+│       │       │   └── CSS Selector Extractor: disclaimer_csrf
+│       │       ├── GET /RMS/AspSoft/Disclaimer/Disclaimer.htm
+│       │       ├── POST /RMS/DisclaimerRedirect
+│       │       │   └── __RequestVerificationToken=${disclaimer_csrf}
+│       │       ├── GET /RMS
+│       │       └── GET /RMS/Home
+│       │           ├── division_id=${division_id}
+│       │           ├── Response Assertion [Enabled]: Authenticated Home Logout Link
+│       │           │   ├── Field to Test = Response Text
+│       │           │   ├── Pattern Matching Rule = Substring
+│       │           │   └── Pattern = `href="/RMS/Logout"`
+│       │           │       来源：SAZ 会话 09 `/RMS/Home?division_id=3` 响应正文第 129 行；该 sampler 是实际产生此已认证主页特征的请求
+│       │           └── 登录/初始化失败：Flow Control Action = Stop Current Thread
+│       └── Loop Controller: Create and submit Incident Report (Forever)
+│           ├── User Parameters: Per-report dynamic data
+│           │   ├── iteration_failed = false
+│           │   ├── firstName = TEST${__Random(1000,9999)}
+│           │   ├── lastName = TEST${__Random(1000,9999)}
+│           │   ├── ssn = ${__Random(100,999)}-${__Random(10,99)}-${__Random(1000,9999)}
+│           │   ├── plateNo = P${__Random(100000,999999)}
+│           │   ├── narrative = TEST REPORT ${__threadNum}-${__time(yyyyMMddHHmmssSSS)}-${__Random(1000,9999)}
+│           │   ├── contact_name_mn_rnd = 0.${__Random(100000000,999999999)}
+│           │   ├── contact_ssn_mn_rnd = 0.${__Random(100000000,999999999)}
+│           │   ├── vehicle_mn_rnd = 0.${__Random(100000000,999999999)}
+│           │   ├── victim_popup_rnd = 0.${__Random(100000000,999999999)}
+│           │   ├── vehicle_popup_rnd = 0.${__Random(100000000,999999999)}
+│           │   └── njs_popup_rnd = 0.${__Random(100000000,999999999)}
+│           ├── Simple Controller: Correlation failure guard（复制到每个关键提取/保存点之后）
+│           │   ├── 若 sampler 失败，或关键值为空/等于 NOT_FOUND：iteration_failed=true
+│           │   └── If iteration_failed=true → Flow Control Action: Go to next iteration of Current Loop
+│           ├── Uniform Random Timer
+│           │   └── 每个业务请求延迟 500～1500 ms（已批准）
+│           ├── Transaction Controller: Open active case and report list
+│           │   ├── GET /RMS/inbox/list
+│           │   │   ├── inbox_staff_id=${staff_id}, inbox_sub_id=${inbox_sub_id}
+│           │   │   ├── Regular Expression Extractor: case_id / Match 0（从当前用户候选案件随机取一项）
+│           │   │   └── Regular Expression Extractor: mapping_key / Match 1
+│           │   │       来源：本响应 `sessionStorage.setItem("MappingKey", "...")`（SAZ 会话 11）
+│           │   ├── GET /RMS/AspSoft/Dispatcher
+│           │   │   └── case_id=${case_id}
+│           │   └── GET /RMS/Aspsoft/Dispatcher
+│           │       ├── case_id=${case_id}, division_id=${division_id}
+│           │       ├── report_type=${report_type}, indicator_type=${indicator_type}
+│           │       ├── CSS Selector Extractor: report_list_csrf
+│           │       └── CSS Selector Extractor: report_list_timestamp（doubleEntryTimeStamp）
+│           ├── Transaction Controller: Start new report
+│           │   ├── POST /RMS/Aspsoft/Dispatcher
+│           │   │   ├── query: case_id=${case_id}, division_id=${division_id}, report_type=${report_type}, indicator_type=${indicator_type}
+│           │   │   ├── form: template_id=${template_id}, submit_button=New Report
+│           │   │   ├── doubleEntryTimeStamp=${report_list_timestamp}
+│           │   │   ├── __RequestVerificationToken=${report_list_csrf}
+│           │   │   └── Boundary Extractor: form_guid（从 302 Location 的 FormGUID=... 提取）
+│           │   └── GET /RMS/Aspsoft/IntakeForm/middlepage
+│           │       ├── report_id=0, case_id=${case_id}, FormGUID=${form_guid}
+│           │       ├── Regular Expression Extractor: case_location_id
+│           │       └── Regular Expression Extractor: case_master_object（CASE/ORG 对象串）
+│           ├── Transaction Controller: Add victim
+│           │   ├── GET /RMS/aspsoft/popupdispatcher
+│           │   │   ├── case_id=${case_id}, report_id=0, rnd=${victim_popup_rnd}
+│           │   │   ├── CSS Selector Extractor: victim_csrf
+│           │   │   └── CSS Selector Extractor: victim_timestamp
+│           │   ├── POST /RMS/aspsoft/EngineService/Dropdown
+│           │   ├── POST /RMS/aspsoft/EngineService/Dropdown
+│           │   ├── POST /RMS/include/RmsData/PostIDReader
+│           │   ├── POST /RMS/AspSoft/MasterName
+│           │   │   └── query rnd=${contact_name_mn_rnd}; body MN_rnd=${contact_name_mn_rnd}; ToObjects/ToAliasObjects 保留抓包值
+│           │   ├── GET /RMS/AspSoft/MasterName
+│           │   │   └── last_name=${lastName}, first_name=${firstName}, MN_rnd=${contact_name_mn_rnd}, rnd=0.${__Random(100000000,999999999,request_rnd)}
+│           │   ├── POST /RMS/AspSoft/MasterName
+│           │   │   └── MN_rnd=${contact_name_mn_rnd}（name removesession）
+│           │   ├── POST /RMS/AspSoft/MasterName
+│           │   │   └── query rnd=${contact_ssn_mn_rnd}; body MN_rnd=${contact_ssn_mn_rnd}
+│           │   ├── GET /RMS/AspSoft/MasterName
+│           │   │   └── ssn=${ssn}, MN_rnd=${contact_ssn_mn_rnd}, rnd=0.${__Random(100000000,999999999,request_rnd)}
+│           │   ├── POST /RMS/AspSoft/MasterName
+│           │   │   └── MN_rnd=${contact_ssn_mn_rnd}（SSN removesession）
+│           │   ├── GET /InfoMapping/api/GisSvc/GeoCode
+│           │   │   └── condition=6, regionId=${region_id}, csi-key=${mapping_key}
+│           │   ├── GET /InfoMapping/api/gissvc/GetMasterLocationChildren
+│           │   │   └── regionId=${region_id}, masterLocationId=${master_location_id}, csi-key=${mapping_key}
+│           │   ├── GET /InfoMapping/api/gissvc/GetCommonPlaces
+│           │   │   └── regionId=${region_id}, masterLocationId=${master_location_id}, csi-key=${mapping_key}
+│           │   ├── POST /RMS/aspsoft/EngineService/Dropdown
+│           │   ├── POST /RMS/aspsoft/popupdispatcher
+│           │   │   ├── query rnd=${victim_popup_rnd}; first_name=${firstName}, last_name=${lastName}, ssn=${ssn}
+│           │   │   ├── case_id=${case_id}, __RequestVerificationToken=${victim_csrf}
+│           │   │   ├── doubleEntryTimeStamp=${victim_timestamp}
+│           │   │   └── 地址/位置按 SAZ 静态保存值（见第 6 节）
+│           │   └── GET /RMS/Aspsoft/IntakeForm/middlepage
+│           │       ├── handler=partialrefresh, rnd=0.${__Random(100000000,999999999,request_rnd)}
+│           │       └── XPath Extractor: contact_master_object（person/contact/location IDs）
+│           │           只取同一 `<tr>` 中姓名为 `${lastName}, ${firstName}` 的 master_id_list value
+│           │           XPath: //tr[.//a[contains(normalize-space(.), concat('${lastName}', ', ', '${firstName}'))]]//input[@objectname='master_id_list']/@value
+│           ├── Transaction Controller: Add vehicle
+│           │   ├── GET /RMS/aspsoft/popupdispatcher
+│           │   │   ├── rnd=${vehicle_popup_rnd}
+│           │   │   ├── CSS Selector Extractor: vehicle_csrf
+│           │   │   └── CSS Selector Extractor: vehicle_timestamp
+│           │   ├── POST /RMS/aspsoft/EngineService/Dropdown
+│           │   ├── POST /RMS/include/RmsData/PostIDReader
+│           │   ├── POST /RMS/AspSoft/MasterName
+│           │   │   └── query rnd=${vehicle_mn_rnd}; body MN_rnd=${vehicle_mn_rnd}
+│           │   ├── GET /RMS/AspSoft/MasterName
+│           │   │   └── plate_no=${plateNo}, MN_rnd=${vehicle_mn_rnd}, rnd=0.${__Random(100000000,999999999,request_rnd)}
+│           │   ├── POST /RMS/AspSoft/MasterName
+│           │   │   └── MN_rnd=${vehicle_mn_rnd}（Vehicle removesession）
+│           │   ├── POST /RMS/aspsoft/EngineService/Dropdown
+│           │   ├── POST /RMS/aspsoft/popupdispatcher
+│           │   │   ├── query rnd=${vehicle_popup_rnd}; plate_no=${plateNo}, case_id=${case_id}
+│           │   │   ├── __RequestVerificationToken=${vehicle_csrf}
+│           │   │   └── doubleEntryTimeStamp=${vehicle_timestamp}
+│           │   └── GET /RMS/Aspsoft/IntakeForm/middlepage
+│           │       ├── handler=partialrefresh, rnd=0.${__Random(100000000,999999999,request_rnd)}
+│           │       └── XPath Extractor: vehicle_master_object（vehicle/case_vehicle IDs）
+│           │           只取同一 `<tr>` 中 plate_no 为 `${plateNo}` 的 master_id_list value
+│           │           XPath: //tr[.//a[@objectname='plate_no' and normalize-space(.)='${plateNo}']]//input[@objectname='master_id_list']/@value
+│           ├── Transaction Controller: Add PA charges
+│           │   ├── GET /RMS/aspsoft/popupdispatcher
+│           │   │   ├── rnd=${njs_popup_rnd}
+│           │   │   ├── CSS Selector Extractor: njs_csrf
+│           │   │   └── CSS Selector Extractor: njs_timestamp
+│           │   ├── GET /RMS/Aspsoft/PopUpDispatcher
+│           │   │   ├── charge=4；两个 rnd 分别内联生成 request_rnd_1/request_rnd_2
+│           │   │   ├── Regular Expression Extractor: charge_1_candidate / Match 0
+│           │   │   └── JSR223 PostProcessor: HTML/URL decode 后按 `~` 仅拆出 code/description
+│           │   ├── GET /RMS/Aspsoft/PopUpDispatcher
+│           │   │   ├── charge=3；两个 rnd 分别内联生成 request_rnd_1/request_rnd_2
+│           │   │   ├── Regular Expression Extractor: charge_2_candidate / Match 0
+│           │   │   └── JSR223 PostProcessor: HTML/URL decode 后按 `~` 仅拆出独立 code/description
+│           │   ├── POST /RMS/aspsoft/popupdispatcher
+│           │   │   ├── query rnd=${njs_popup_rnd}; 使用 charge_1_code/description 和 charge_2_code/description
+│           │   │   ├── __RequestVerificationToken=${njs_csrf}
+│           │   │   └── doubleEntryTimeStamp=${njs_timestamp}
+│           │   └── GET /RMS/Aspsoft/IntakeForm/middlepage
+│           │       ├── handler=partialrefresh, rnd=0.${__Random(100000000,999999999,request_rnd)}
+│           │       ├── XPath Extractor: inv_njs_id_1
+│           │       │   只取同一 `<tr>` 中 njs_code=${charge_1_code} 的 inv_njs_id value
+│           │       │   XPath: //tr[.//span[@objectname='njs_code' and normalize-space(.)='${charge_1_code}']]//input[@objectname='inv_njs_id']/@value
+│           │       └── XPath Extractor: inv_njs_id_2
+│           │           只取同一 `<tr>` 中 njs_code=${charge_2_code} 的 inv_njs_id value
+│           │           XPath: //tr[.//span[@objectname='njs_code' and normalize-space(.)='${charge_2_code}']]//input[@objectname='inv_njs_id']/@value
+│           ├── Transaction Controller: Create report
+│           │   ├── JSR223 PreProcessor: Build intake object graph
+│           │   │   ├── 使用 contact_master_object、vehicle_master_object、inv_njs_id_1/_2、case_location_id、case_master_object、case_id
+│           │   │   ├── 按捕获格式使用 STX (U+0002) / ETX (U+0003) 分隔对象
+│           │   │   └── 生成 Base64 objects_parameter 和 objects_data_index
+│           │   ├── POST /RMS/Aspsoft/IntakeForm/middlepage
+│           │   │   ├── JSON Extractor: report_id
+│           │   │   ├── JSON Assertion [Enabled]: CreateIntake Message OK
+│           │   │   │   └── JSON Path=$.message; Expected Value=OK; Match as regular expression=false
+│           │   │   └── JSON Assertion [Enabled]: CreateIntake Report ID Is Positive Integer
+│           │   │       └── JSON Path=$.report_id; Expected Value=`^[1-9][0-9]*$`; Match as regular expression=true
+│           │   └── GET /RMS/Aspsoft/IntakeForm/Intake
+│           │       ├── report_id=${report_id}, rnd=0.${__Random(100000000,999999999,request_rnd)}
+│           │       └── CSS Selector Extractor: intake_csrf
+│           ├── Transaction Controller: Save incident report
+│           │   └── POST /RMS/AspSoft/IntakeForm/Intake
+│           │       ├── query action=auto_confirm, save_data=1, rnd=0.${__Random(100000000,999999999,request_rnd)}
+│           │       ├── case_id=${case_id}, report_id=${report_id}
+│           │       ├── hdnReportID=${report_id}, hdnCaseID=${case_id}
+│           │       ├── narrative=${narrative}
+│           │       ├── __RequestVerificationToken=${intake_csrf}
+│           │       └── Response Assertion [Enabled]: Intake Auto Confirm Body WF
+│           │           ├── Field to Test = Response Text
+│           │           ├── Pattern Matching Rule = Matches
+│           │           └── Pattern = `(?s)^\s*WF\s*$`
+│           └── Transaction Controller: Submit workflow and refresh list
+│               ├── GET /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow
+│               │   ├── report_ids=${report_id}；两个 rnd 分别内联生成 request_rnd_1/request_rnd_2
+│               │   └── CSS Selector Extractor: workflow_csrf
+│               ├── POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow
+│               │   └── nextStep=ROUTE1, reportIds=${report_id}
+│               ├── POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow
+│               │   └── reportIds=${report_id}; 其余路由字段保留 SAZ 值
+│               ├── POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow
+│               │   ├── multipart/form-data；保留原始 boundary 与 part 结构
+│               │   ├── report_ids=${report_id}
+│               │   └── __RequestVerificationToken=${workflow_csrf}
+│               └── GET /RMS/Aspsoft/Dispatcher
+│                   └── case_id=${case_id}, division_id=${division_id}
+├── View Results Tree
+│   └── 默认启用，仅用于单用户调试；正式负载测试前必须禁用
+└── Simple Data Writer
+    └── 默认禁用；正式负载测试前启用，写入轻量 JTL
 ```
 
-Timer 不放在 Loop/Transaction 同级作用域。每个 Uniform Random Timer 只作为目标用户动作 HTTP Sampler 的子元素，因此只延迟该次点击，不会给事务内每个技术请求重复叠加等待。建议主要点击使用 300～1000ms 思考时间。不使用 Synchronizing Timer：本需求是 5 用户并发进入，而非强制同一毫秒同时提交。
+Sampler 名称严格采用 `<METHOD> <实际路径>`；同路径的不同用途由所在 Transaction Controller、query/form 参数区分。阶段 2 若获批准，所有未在上树单独列出的 query、form、Body Data 和空字段均以对应 SAZ 会话为唯一来源，保留重复字段、顺序及编码；只替换本文明确声明的 CSV、随机值和前置响应变量。`Referer` 也必须引用本轮 `${case_id}`、`${form_guid}`、`${report_id}` 等变量，不能复制抓包中的固定 URL。
 
-错误控制：Thread Group 始终 `Continue`。在 `case_id`、页面 token/timestamp、FormGUID、mapping_key、Victim/Vehicle/Charge IDs、`report_id`、workflow token 等关键提取点后放置 Correlation Failure Check；任一必需值为空或为 `NOT_FOUND` 时设置 `iteration_failed=true`，随后由 If Controller 内的 `Flow Control Action: Go to next iteration of Current Loop` 结束当前 Report 迭代。下一次 Loop 迭代由 User Parameters 将 `iteration_failed` 重置为 false 并生成新业务值。
+## 5. CSV 参数化
 
-## 4. 关联与参数化决策
+配套文件：`Output/pa40_incident_users.csv`
 
-| 变量/字段 | 来源 | 用途/规则 |
+| CSV 列 | 使用位置 | 说明 |
 |---|---|---|
-| username/password/staff_id/region_id | CSV | 每线程唯一用户；`inbox_staff_id=${staff_id}`；Mapping `regionId=${region_id}` |
-| case_id | Inbox HTML response | 正则随机提取，Match No.=0；禁止固定抓包 Case ID |
-| __RequestVerificationToken | 每个相关 GET/最终重定向 response | CSS 提取并仅回填对应页面的后续 POST/Header；必需 token 提取失败即跳本轮，不提交空值；不得跨页面长期复用 |
-| disclaimer_csrf | POST Login 重定向子样本中的 DisclaimerRedirect HTML | Main sample and sub-samples；独立 Disclaimer.htm 不含此 token |
-| doubleEntryTimeStamp | 每个弹窗/列表 GET response | 必需字段；CSS 提取、Default=NOT_FOUND，失败即跳本轮 |
-| FormGUID | 新建 Report POST 的 Response Headers / Location | Regex 检查 Response Headers，Main sample and sub-samples，Default=NOT_FOUND；失败即跳本轮 |
-| mapping_key | Add Victim GET response（SAZ session 22） | 唯一父 sampler；Body/Main sample only 中提取 `sessionStorage MappingKey`；不硬编码 SAZ key |
-| firstName/lastName/ssn/plateNo | 循环首个 User Parameters | 每轮动态生成；唯一性检查与保存 POST 必须复用同一变量 |
-| address/sex/race/ethnicity/division_id/template_id | SAZ 静态值 | 按 skill 规则保持；地址服务返回的 location ID/经纬度需关联 |
-| victim_person_id/contact_id/location_id | Victim partial refresh response | 构造 CreateIntake 对象串 |
-| vehicle_id/case_vehicle_id | Vehicle partial refresh response | 构造 CreateIntake 对象串 |
-| charge1_* / charge2_* | 两个 PA popup list response | 各自 Match No.=0；HTML/URL decode 后按 `~` 拆分，保持两条记录独立 |
-| inv_njs_id_1/inv_njs_id_2 | Charge partial refresh response | 构造 CreateIntake 对象串 |
-| objects_parameter/objects_data_index | JSR223 PreProcessor | Groovy 用 `(char)0x02/(char)0x03` 构造 STX/ETX；UTF-8 Base64 后 URL encode 一次；不能在 XML/UDV 放实际控制字符或复用抓包固定 Base64 |
-| report_id | CreateIntake JSON response | JSONPath `$.report_id`；用于 Intake 保存、Workflow 与清理 |
-| narrative | 循环动态值 | 用于识别 15 个测试产物并辅助后置清理 |
-| request_rnd | 循环 User Parameters | `${__time()}${__Random(100000,999999)}`；映射到普通页面、partialrefresh、ShowCount、Popup list、Intake/Workflow URL 的 `rnd`；每个需要独立值的请求可在其前置处理器按同规则刷新 |
-| victim_name_rnd/victim_ssn_rnd/vehicle_mn_rnd | 循环 User Parameters | 分别映射到对应 MasterName `setsession -> search -> removesession` 三请求的 `MN_rnd`，同一序列稳定、不同序列隔离 |
+| `username` | Login POST `LoginId` | 5 个独立、允许创建/提交报告的测试账号 |
+| `password` | Login POST `Password` | 填写浏览器实际提交前的 Base64 文本；由 HTTP 参数编码处理 `%3D`，不要填 URL 编码后的重复值 |
+| `staff_id` | Inbox `inbox_staff_id` | 必须与该行账号匹配 |
+| `region_id` | InfoMapping 请求 `regionId` | 必须与该行账号/环境匹配 |
 
-ASP.NET 隐藏字段原则：每次响应仅当页面实际存在 `__VIEWSTATE`、`__VIEWSTATEGENERATOR`、`__EVENTVALIDATION`、`__RequestVerificationToken`、`doubleEntryTimeStamp` 时提取；后续 POST 仅回填该页面返回的最新值。本 SAZ 的核心可见字段是 token 与 timestamp，但生成 JMX 时仍需按响应实际存在性处理。
+CSV 现含 5 行 `REPLACE_*` 数据槽。它不可用于真实执行，用户必须替换全部占位值。禁止把生产账号或明文凭据提交到版本库。
 
-所有表单 POST 优先使用 Parameters 且 `always_encode=true`。JSON 请求（如 Inbox count 的数组 body）放 Body Data。Workflow Clear 是 multipart：必须保持原 boundary、Content-Disposition、Content-Type 和分段结构，同时替换 `report_ids` 与 token；如后续发现 multipart 还含其他动态字段，也必须逐 part 参数化。
+## 6. 动态参数、关联与静态值
 
-## 5. 断言授权状态
+### 每轮动态生成并复用
 
-以下断言已获用户批准，属于生成器必须实现的启用节点：
+| 变量 | 生成位置 | 规则 | 复用请求 |
+|---|---|---|---|
+| `firstName` | 业务 Loop 起始 | `TEST${__Random(1000,9999)}` | 姓名搜索、Victim 保存 |
+| `lastName` | 业务 Loop 起始 | `TEST${__Random(1000,9999)}` | 姓名搜索、Victim 保存 |
+| `ssn` | 业务 Loop 起始 | `${__Random(100,999)}-${__Random(10,99)}-${__Random(1000,9999)}` | SSN 搜索、Victim 保存 |
+| `plateNo` | 业务 Loop 起始 | `P` + 6 位随机数 | Vehicle 搜索、Vehicle 保存 |
+| `narrative` | 业务 Loop 起始 | `TEST REPORT ${__threadNum}-${__time(yyyyMMddHHmmssSSS)}-${__Random(1000,9999)}` | Intake auto_confirm |
+| `contact_name_mn_rnd` | 业务 Loop 起始 | `0.${__Random(100000000,999999999)}` | Victim 姓名 set/search/remove 会话组 |
+| `contact_ssn_mn_rnd` | 业务 Loop 起始 | `0.${__Random(100000000,999999999)}` | Victim SSN set/search/remove 会话组 |
+| `vehicle_mn_rnd` | 业务 Loop 起始 | `0.${__Random(100000000,999999999)}` | Vehicle set/search/remove 会话组 |
+| `victim_popup_rnd` | 业务 Loop 起始 | `0.${__Random(100000000,999999999)}` | addCaseVW popup GET 与对应保存 POST |
+| `vehicle_popup_rnd` | 业务 Loop 起始 | `0.${__Random(100000000,999999999)}` | addCaseVehicle popup GET 与对应保存 POST |
+| `njs_popup_rnd` | 业务 Loop 起始 | `0.${__Random(100000000,999999999)}` | addCaseNJSCode popup GET 与对应保存 POST |
+| `request_rnd` | 每个包含 `rnd` 的 Sampler 内联生成 | `rnd=0.${__Random(100000000,999999999,request_rnd)}` | 仅消费于当前 Sampler 的 `rnd` query；每次求值覆盖变量并得到新值 |
 
-| 请求 | 启用断言 | 判定条件 |
+`request_rnd` 的消费请求为 Disclaimer.htm、MasterName search、三个 partial refresh、两个 PA charge list、Intake GET、auto_confirm 以及 Workflow GET。MasterName setsession 的 query `rnd` 必须复用本组 `*_mn_rnd`，三个 add popup 的打开 GET/保存 POST 必须复用本组 `*_popup_rnd`。捕获 URL 含两个同名 `rnd`（两个 PA charge list 与 Workflow GET）时，分别写为 `0.${__Random(100000000,999999999,request_rnd_1)}` 与 `0.${__Random(100000000,999999999,request_rnd_2)}`，两个值只在当前请求消费，不跨请求复用。
+
+同一业务值不得在不同 Sampler 内重新调用随机函数，否则唯一性检查和最终保存值会不一致。
+
+### 前置响应关联
+
+- `login_csrf`：Login GET 的 `__RequestVerificationToken`。
+- `disclaimer_csrf`：DisclaimerRedirect GET 的 `__RequestVerificationToken`。
+- `mapping_key`：从每轮 `GET /RMS/inbox/list` 响应（SAZ 会话 11）中的 `sessionStorage.setItem("MappingKey", "...")` 以正则 `sessionStorage\.setItem\("MappingKey",\s*"([^"]+)"`、Match No. `1` 提取；它在 GeoCode 前已产生。Home 响应不作为来源，也不得复用抓包中的固定 key。
+- `case_id`：Inbox 当前账号可见案件列表的候选值，Match No. `0` 随机选择。
+- `report_list_csrf`、`report_list_timestamp`：Police Report 页面。
+- `form_guid`：New Report POST 的 302 `Location` 响应头。
+- `victim_csrf`/`victim_timestamp`、`vehicle_csrf`/`vehicle_timestamp`、`njs_csrf`/`njs_timestamp`：分别来自对应 popup GET。
+- `contact_master_object`：联系人 partial refresh 返回的新 person/contact/location IDs。
+- `vehicle_master_object`：车辆 partial refresh 返回的新 vehicle/case_vehicle IDs。
+- `charge_1_code`/`charge_1_description`、`charge_2_code`/`charge_2_description`：两个 PA charge 候选页面各自随机选一项；必须保持角色分离。候选串中的 grade 未被保存请求消费，因此不输出 grade 变量。
+- `inv_njs_id_1`、`inv_njs_id_2`：NJS partial refresh 返回的两条新 ID。
+- `report_id`：CreateIntake JSON 响应的新报告 ID；后续 Intake、workflow、multipart Clear 全部复用。
+- `intake_csrf`、`workflow_csrf`：分别来自 Intake 和 Workflow GET。
+
+SAZ 中不存在 `__VIEWSTATE`、`__VIEWSTATEGENERATOR`、`__EVENTVALIDATION`，因此不生成这些提取器。
+
+### CSRF 的 body/header 消费范围
+
+以下 `RequestVerificationToken` 均使用前置 popup/page 提取的变量，禁止保留 SAZ 中的固定 token：
+
+| 变量 | form/body 消费 | AJAX `RequestVerificationToken` header 消费 |
 |---|---|---|
-| POST `/RMS/Aspsoft/IntakeForm/middlepage?handler=CreateIntake` | JSON Assertion ×2 | `$.message` 等于 `OK`；`$.report_id` 存在且匹配正整数正则 `^[1-9][0-9]*$` |
-| POST `/RMS/AspSoft/IntakeForm/Intake?action=auto_confirm&save_data=1` | Response Assertion ×2 | Response Code 精确等于 `200`；Response Text 匹配 `(?s)^\\s*WF\\s*$`，即 trim 后精确等于 `WF` |
+| `victim_csrf` | Victim 保存 `POST /RMS/aspsoft/popupdispatcher` 的 `__RequestVerificationToken` | 两个 Dropdown、IDReader、Victim name/SSN 的 setsession 与 removesession、GeoCode、GetMasterLocationChildren、GetCommonPlaces、municipality refresh、ALLCONTACT partial refresh |
+| `vehicle_csrf` | Vehicle 保存 `POST /RMS/aspsoft/popupdispatcher` 的 `__RequestVerificationToken` | Vehicle Dropdown、IDReader、setsession、removesession、model Dropdown、Vehicle partial refresh |
+| `njs_csrf` | NJS 保存 `POST /RMS/aspsoft/popupdispatcher` 的 `__RequestVerificationToken` | NJS partial refresh；两个普通导航型 charge list GET 按 SAZ 不带该 header |
+| `intake_csrf` | Intake auto_confirm form 的 `__RequestVerificationToken` | 同一 auto_confirm AJAX 请求的 `RequestVerificationToken` header |
+| `workflow_csrf` | Workflow Clear multipart part `__RequestVerificationToken` | ReportNextStepSelectedChanged 与 SaveWorkFlow 的 `RequestVerificationToken` header |
 
-除此之外没有授权任何 Assertion。Login、Inbox、Victim/Vehicle/Charge popup、Workflow（包括 SaveWorkFlow）和 Duration Assertion 均保持禁用/不生成；它们也不作为本架构中的推荐节点。若后续需要增加，必须由用户再次明确批准并更新本权威架构。
+姓名/SSN/Vehicle 的普通导航型 MasterName search GET 按 SAZ 不带 `RequestVerificationToken` header；不能为它们臆造 header。
 
-## 6. Listener 与执行方式
+### 依规则保留的 SAZ 静态值
 
-仅保留 Simple Data Writer/Result Collector 写 JTL。不得在负载执行时启用 View Results Tree、View Results in Table、Graph Results。建议 CLI 执行；GUI 仅用于小并发调试。15 份的业务成功数应以 CreateIntake 返回有效 `report_id` 且 SaveWorkFlow 成功为准，而不是只看 HTTP 200。
+- `division_id=3`、`inbox_sub_id=10030101`、`template_id=1318`、`report_type=C`、`indicator_type=1`。
+- Victim 地址选择结果：`6 ACORN BLVD, LANCASTER, PA 17602`，county `36`、municipality `36215`、longitude `-76.234123`、latitude `40.032795`、master location `19198`、country `US`、source `master`。
+- Vehicle 描述字段保留捕获业务选择：state `PA`、year `2020`、make `AUDI`、model `5000`、body type `CONVERTIBLE`、color `BLACK`；仅 plate number 动态化。
+- Workflow 路由值：`ROUTE1`、`PENDING`、`INTAKE_1LEVELGROUP`、`GROUP`、`OFFICER`。
+- 空字段保持空，不为其创建无来源变量；不添加 JDBC 数据源。
 
-## 7. 预计请求量与产物核对
+Vehicle 保存 body 中 `person_id~|location_add~|A=1`、`person_id~|person_add~|A=1` 按用户批准保留捕获静态值 `1`，不得替换为 `${staff_id}` 或新增 CSV person ID。
 
-- 登录事务：每线程 1 次，共 5 次；Cookie 会话跨 3 个业务循环复用。
-- Create Incident Report Loop：每线程 3 次，共 15 次。
-- 理论 CreateIntake：15 次；理论 Workflow Save：15 次。
-- 若任一循环失败并跳到下一循环，实际成功 Report 少于 15；测试报告需列出成功 report_id 与 narrative，失败循环不得计入成功数。
-- 测试数据会写入目标环境；执行前应确认账号权限、Case 可写状态、数据保留/清理策略。
+### 特殊请求体
 
-## 8. 待用户确认
+- CreateIntake 的 `objects_parameter` 与 `objects_data_index` 必须根据本轮对象 ID 重新组装，使用 U+0002/U+0003 控制字符保持捕获层级，再进行 Base64；不能复用抓包中的固定 Base64。
+- Workflow Clear 必须保留 multipart boundary、`Content-Disposition`、空行和结尾 boundary，并替换 `report_ids`、`__RequestVerificationToken`。
+- JSON 仅用于 CreateIntake 响应提取；捕获中的 JSON 请求体（ID Reader `{"a":1}`）使用 Body Data，不放到 Parameters。
 
-1. 是否确认每一轮都从 My Active Case Inbox **随机选择 Case**？当前设计如此；若希望每用户 3 份都写到同一 Case，应把 Select Active Case 移到 Loop 外。
-2. 请在 `pa40_incident_users.csv` 填入 5 个唯一且有创建/提交权限的账号、密码、staff_id、region_id；占位值不可直接执行。
-3. Ramp-up 是否采用 5 秒？是否需要强制 5 用户同时点击 Create/Save（若需要才增加 Synchronizing Timer）。
-4. 当前只授权 CreateIntake JSON 断言和 auto_confirm HTTP 200/body `WF` 断言；如需 Login、Inbox、popup、Workflow 或 Duration/SLA 断言，须另行明确批准。
-5. 是否确认 SAZ 中静态地址及两类 PA charge 随机候选可用于压测；是否有指定 Case/charge 数据集。
-6. 是否需要 Workflow 提交到 `ROUTE1`，还是仅保存草稿；当前按 SAZ 完整提交。
-7. 请确认测试后 15 份 report 的保留或清理方式；SAZ 未包含删除链路。
+## 7. 已批准并启用的断言
+
+只生成以下三组业务断言，不增加 HTTP 200、Duration、popup 保存、SaveWorkFlow 或最终列表断言：
+
+1. `GET /RMS/Home?division_id=${division_id}` 响应正文包含精确子串 `href="/RMS/Logout"`。该特征直接来自 SAZ 会话 09 的响应，并挂在实际产生它的 Home sampler。
+2. CreateIntake 响应的 `$.message` 严格等于 `OK`，且 `$.report_id` 匹配正整数正则 `^[1-9][0-9]*$`。
+3. Intake auto_confirm 响应正文匹配 `(?s)^\s*WF\s*$`，即去除首尾空白后严格等于 `WF`。
+
+## 8. 执行前置条件与风险
+
+1. 必须把 CSV 的 5 行占位值替换为 5 套独立、权限正确的测试账号数据；否则不具备执行条件。
+2. 每个账号的 My Active Cases 必须至少有一条可用于新增 Incident Report 的案件；否则随机 `case_id` 无值并停止该线程。
+3. 当前业务循环会真实创建并提交报告，需确认目标测试环境允许 5 用户持续 600 秒写入，并安排数据清理/隔离策略。
+4. 随机姓名/SSN/车牌的取值空间有限，长时间或重复执行仍可能碰撞；若环境有严格唯一约束，应把规则扩展为线程号 + 时间戳。
+5. 600 秒从线程组启动算起，包含 5 秒 ramp-up 和每线程首次登录；这会减少完整业务迭代可用的稳态时间。
+6. Timer 已批准为每个业务请求 500～1500 ms；抓包人工操作间隔只作为存在用户停顿的证据，不逐请求复制。
+7. 正式负载执行必须使用非 GUI 模式，禁用 View Results Tree，启用 Simple Data Writer，并单独设置结果目录。
+
+## 9. 真实执行前仍需满足的外部前置条件
+
+- 用 5 套真实且有权限的 `username/password/staff_id/region_id` 替换 CSV 中全部 `REPLACE_*` 占位值。
+- 确认 5 个账号都适用 `division_id=3`；如环境实际配置不同，应另行修订已批准的数据模型。
+- 确认每个账号至少有一条可写活动案件，且目标测试环境授权持续创建并提交报告。
+- 确认数据隔离、报告保留和清理策略。
+
+在上述外部条件补齐前，生成产物仅可做静态校验，不可真实执行。

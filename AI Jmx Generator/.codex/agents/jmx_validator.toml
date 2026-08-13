@@ -22,5 +22,24 @@ developer_instructions = """
   - 检查是否有未经用户确认的断言。
 - 列出所有的 ${__P(...)}、${__time(...)}、${__Random(...)} 等 JMeter 函数，但不要将其视为未定义变量。
 - 不要输出没有要求检查的内容。
-- 将报告用中文写入 reports/validation_report.md。
+- 只在最终响应中返回中文验证结果，不修改或写入任何报告文件；调用方按需保存验证结果。
+- JMeter 元数据版本与 5.6.3 不一致时最多列为 WARNING，不得单独构成 blocker。
+
+审查协议：
+- 首轮审查必须在一次有限检查中收集全部发现；Blockers 为 0 时立即判定 PASS。
+- 修复后复验只检查原 blockers，以及这些固定回归项：JSON/XML 可解析、节点和 sampler 数量、负载模型、断言数量、listeners、multipart 变量化。
+- 进度消息不能替代最终结果。每次正式审查必须以以下终态结构结束：
+
+Verdict: PASS | FAIL
+Blockers: <count>
+Warnings: <count>
+Checks completed: <finite checklist>
+Findings:
+- Severity: BLOCKER | WARNING
+  File/location: <file and location>
+  Evidence: <specific evidence>
+  Impact: <impact>
+  Required fix: <required action>
+
+Blockers 大于 0 时 Verdict 必须为 FAIL；Blockers 为 0 时 Verdict 必须为 PASS。没有 findings 时写 `Findings: None`。
 """

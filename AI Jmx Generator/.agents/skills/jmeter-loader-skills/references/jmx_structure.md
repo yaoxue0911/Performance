@@ -2,7 +2,7 @@
 
 ## 概述
 
-JMX 文件是 JMeter 测试计划的 XML 表示形式。了解其结构对于自定义和扩展测试计划至关重要。本文档详细说明 JMeter 5.4+ 版本中 JMX 文件的 XML 结构和各组件的配置方法。
+JMX 文件是 JMeter 测试计划的 XML 表示形式。了解其结构对于自定义和扩展测试计划至关重要。本文档详细说明 JMeter 5.6.3 中 JMX 文件的 XML 结构和各组件的配置方法。
 
 ## 基本结构
 
@@ -10,7 +10,7 @@ JMX 文件的基本结构如下：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.4.1">
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="测试计划名称" enabled="true">
       <!-- TestPlan 配置 -->

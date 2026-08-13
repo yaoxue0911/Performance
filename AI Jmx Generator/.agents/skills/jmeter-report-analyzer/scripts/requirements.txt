@@ -2,7 +2,7 @@
 # 安装命令: pip install -r requirements.txt
 
 # 核心依赖
-jinja2>=3.0.0           # 用于模板渲染 (generate_jmx.py 核心功能)
+jinja2>=3.0.0           # 用于模板渲染
 
 # 可选依赖 - 用于高级功能
 pandas>=1.0.0           # 用于高级数据处理 (parse_jtl.py 可选)
