@@ -12,6 +12,7 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 GENERATOR_PATH = SCRIPTS_DIR / "generate_jmx_tree.py"
 COMPONENTS_PATH = SCRIPTS_DIR / "jmx_tree_components.py"
+SKILL_PATH = SCRIPTS_DIR.parent / "SKILL.md"
 
 
 def load_generator():
@@ -88,6 +89,71 @@ def nested_scenario():
 
 
 class TreeGeneratorTests(unittest.TestCase):
+    def test_skill_keeps_jmeter_builtin_function_quick_reference(self):
+        skill_text = SKILL_PATH.read_text(encoding="utf-8")
+
+        self.assertIn("## JMeter 内置函数速查", skill_text)
+        for function_name in (
+            "`__P`",
+            "`__property`",
+            "`__Random`",
+            "`__RandomString`",
+            "`__UUID`",
+            "`__jexl3`",
+            "`__groovy`",
+        ):
+            self.assertIn(function_name, skill_text)
+
+    def test_http_defaults_use_jmeter_properties_for_all_runtime_fields(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        scenario["thread_groups"][0]["children"].insert(
+            0, {"type": "http_defaults"}
+        )
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        defaults = root.find(".//ConfigTestElement[@guiclass='HttpDefaultsGui']")
+
+        self.assertIsNotNone(defaults)
+        self.assertEqual(
+            defaults.findtext("stringProp[@name='HTTPSampler.domain']"),
+            "${__P(target_host,localhost)}",
+        )
+        self.assertEqual(
+            defaults.findtext("stringProp[@name='HTTPSampler.port']"),
+            "${__P(target_port,80)}",
+        )
+        self.assertEqual(
+            defaults.findtext("stringProp[@name='HTTPSampler.protocol']"),
+            "${__P(protocol,http)}",
+        )
+        self.assertEqual(
+            defaults.findtext("stringProp[@name='HTTPSampler.contentEncoding']"),
+            "${__P(content_encoding,UTF-8)}",
+        )
+        self.assertEqual(
+            defaults.findtext("stringProp[@name='HTTPSampler.path']"),
+            "${__P(base_path,/)}",
+        )
+
+    def test_http_defaults_reject_literal_runtime_fields(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        scenario["thread_groups"][0]["children"].insert(
+            0,
+            {
+                "type": "http_defaults",
+                "host": "example.invalid",
+                "protocol": "https",
+            },
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            r"thread_groups\[0\]\.children\[0\].*host.*\$\{__P",
+        ):
+            generator.build_jmx(scenario)
+
     def test_once_only_contains_login_and_excludes_business_request(self):
         generator = load_generator()
         root = ET.fromstring(generator.build_jmx(nested_scenario()))
@@ -132,6 +198,154 @@ class TreeGeneratorTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, r"thread_groups\[0\].children\[3\].*mystery"):
             generator.build_jmx(scenario)
+
+    def test_user_parameters_render_natively_at_loop_scope(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        original_business = scenario["thread_groups"][0]["children"][2]
+        user_parameters_node = {
+            "type": "user_parameters",
+            "name": "Per-report dynamic data",
+            "per_iteration": True,
+            "parameters": [
+                {"name": "firstName", "values": ["TEST${__Random(1000,9999)}"]},
+                {"name": "lastName", "values": ["TEST${__Random(1000,9999)}"]},
+            ],
+        }
+        scenario["thread_groups"][0]["children"][2] = {
+            "type": "loop_controller",
+            "name": "Business Iteration",
+            "loops": "-1",
+            "children": [user_parameters_node, original_business],
+        }
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        user_parameters = root.find(".//UserParameters")
+
+        self.assertIsNotNone(user_parameters)
+        self.assertEqual(user_parameters.get("testname"), "Per-report dynamic data")
+        self.assertEqual(user_parameters.get("guiclass"), "UserParametersGui")
+        self.assertEqual(user_parameters.get("testclass"), "UserParameters")
+        self.assertEqual(
+            [item.text for item in user_parameters.findall(
+                "collectionProp[@name='UserParameters.names']/stringProp"
+            )],
+            ["firstName", "lastName"],
+        )
+        self.assertEqual(
+            user_parameters.findtext("boolProp[@name='UserParameters.per_iteration']"),
+            "true",
+        )
+        loop = root.find(".//LoopController[@testname='Business Iteration']")
+        parent = next(item for item in root.iter() if loop in list(item))
+        loop_tree = list(parent)[list(parent).index(loop) + 1]
+        self.assertEqual(list(loop_tree)[0].tag, "UserParameters")
+
+    def test_user_parameters_transpose_user_value_columns(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        scenario["thread_groups"][0]["children"].append({
+            "type": "user_parameters",
+            "per_iteration": False,
+            "parameters": [
+                {"name": "username", "values": ["alice", "bob"]},
+                {"name": "region", "values": ["east", "west"]},
+            ],
+        })
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        user_parameters = root.find(".//UserParameters")
+        columns = user_parameters.findall(
+            "collectionProp[@name='UserParameters.thread_values']/collectionProp"
+        )
+
+        self.assertEqual(
+            [[value.text for value in column.findall("stringProp")] for column in columns],
+            [["alice", "east"], ["bob", "west"]],
+        )
+        self.assertEqual(
+            user_parameters.findtext("boolProp[@name='UserParameters.per_iteration']"),
+            "false",
+        )
+
+    def test_user_parameters_reject_invalid_parameter_tables_with_location(self):
+        generator = load_generator()
+        invalid_tables = [
+            [],
+            [{"name": "", "values": ["x"]}],
+            [{"name": "same", "values": ["x"]}, {"name": "same", "values": ["y"]}],
+            [{"name": "x", "values": []}],
+            [{"name": "x", "values": [1]}],
+            [{"name": "x", "values": ["a", "b"]}, {"name": "y", "values": ["c"]}],
+        ]
+
+        for parameters in invalid_tables:
+            with self.subTest(parameters=parameters):
+                scenario = nested_scenario()
+                scenario["thread_groups"][0]["children"].append({
+                    "type": "user_parameters",
+                    "parameters": parameters,
+                })
+                with self.assertRaisesRegex(
+                    ValueError,
+                    r"thread_groups\[0\]\.children\[3\].*parameters",
+                ):
+                    generator.build_jmx(scenario)
+
+    def test_user_defined_variables_render_as_independent_scoped_node(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        scenario["thread_groups"][0]["children"].insert(1, {
+            "type": "user_defined_variables",
+            "name": "Thread-scoped constants",
+            "variables": {
+                "division_id": "3",
+                "master_location_id": "19198",
+            },
+        })
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        variables = root.find(".//Arguments[@testname='Thread-scoped constants']")
+
+        self.assertIsNotNone(variables)
+        self.assertEqual(variables.get("guiclass"), "ArgumentsPanel")
+        self.assertEqual(variables.get("testclass"), "Arguments")
+        arguments = variables.findall(
+            "collectionProp[@name='Arguments.arguments']/elementProp"
+        )
+        self.assertEqual(
+            [item.findtext("stringProp[@name='Argument.name']") for item in arguments],
+            ["division_id", "master_location_id"],
+        )
+        self.assertEqual(
+            [item.findtext("stringProp[@name='Argument.value']") for item in arguments],
+            ["3", "19198"],
+        )
+        thread_group = root.find(".//ThreadGroup")
+        parent = next(item for item in root.iter() if thread_group in list(item))
+        thread_tree = list(parent)[list(parent).index(thread_group) + 1]
+        self.assertIn(variables, list(thread_tree))
+
+    def test_user_defined_variables_reject_invalid_maps_with_location(self):
+        generator = load_generator()
+        invalid_maps = [
+            {},
+            {"": "value"},
+            {"name": 123},
+        ]
+
+        for variables in invalid_maps:
+            with self.subTest(variables=variables):
+                scenario = nested_scenario()
+                scenario["thread_groups"][0]["children"].append({
+                    "type": "user_defined_variables",
+                    "variables": variables,
+                })
+                with self.assertRaisesRegex(
+                    ValueError,
+                    r"thread_groups\[0\]\.children\[3\].*variables",
+                ):
+                    generator.build_jmx(scenario)
 
     def test_cli_reads_json_and_writes_parseable_jmx(self):
         load_generator()
@@ -255,6 +469,29 @@ class TreeGeneratorTests(unittest.TestCase):
         self.assertEqual(xpath.findtext("stringProp[@name='XPathExtractor.xpathQuery']"), "//*[@name='__VIEWSTATE']/@value")
         self.assertEqual(xpath.findtext("boolProp[@name='XPathExtractor.tolerant']"), "true")
         self.assertEqual(xpath.findtext("stringProp[@name='Sample.scope']"), "parent")
+
+    def test_regex_extractor_renders_explicit_redirect_scope(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        home = scenario["thread_groups"][0]["children"][1]["children"][0]["children"][1]
+        home["children"] = [
+            {
+                "type": "regex_extractor",
+                "name": "Extract redirect value",
+                "refname": "redirect_value",
+                "regex": r"value=(\d+)",
+                "scope": "all",
+            }
+        ]
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        extractor = root.find(".//RegexExtractor")
+
+        self.assertIsNotNone(extractor)
+        self.assertEqual(
+            extractor.findtext("stringProp[@name='Sample.scope']"),
+            "all",
+        )
 
     def test_jdbc_connection_and_sampler_render_as_separate_nodes(self):
         generator = load_generator()

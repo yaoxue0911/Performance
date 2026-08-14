@@ -49,6 +49,7 @@
 3. 请求名称采用 `<METHOD> <实际路径>`，不加序号。所有请求名称、方法、路径、headers、params、body 和业务步骤必须来自捕获内容及用户批准的计划；不得复制示例文件中的业务值。
 4. Controller、Sampler 及其子元件按实际执行顺序排列。
 5. 只加入捕获内容和需求能够证明需要的组件，不为满足组件清单创建空节点。
+6. HTTP Request Sampler 均使用 `follow_redirects=true`
 
 ## 认证与初始化流程
 

@@ -33,6 +33,7 @@ python3 scripts/generate_jmx_tree.py \
 
 ## HTTP 检查
 
+- HTTP Request Defaults 的 host、port、protocol使用 `${__P(propname,default)}`,default 为.saz文件中获取的值；字面量和 `${variable}` 均不允许。
 - 请求名称、method、path、headers、params 和 body 与批准计划一致。
 - HTTP Request Sampler 使用 `follow_redirects=true`。
 - POST 使用 Parameters 时，参数使用 `HTTPArgument.always_encode=true`。

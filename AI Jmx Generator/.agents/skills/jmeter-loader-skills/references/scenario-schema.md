@@ -78,7 +78,7 @@ python3 scripts/assemble_scenario.py \
 
 ## 支持的节点
 
-当前 `generate_jmx_tree.py` 注册以下 32 种节点：
+当前 `generate_jmx_tree.py` 注册以下 34 种节点：
 
 | 类别 | 节点类型 |
 |---|---|
@@ -87,11 +87,57 @@ python3 scripts/assemble_scenario.py \
 | Timers | `constant_timer`, `gaussian_timer`, `uniform_timer`, `synchronizing_timer` |
 | Extractors | `json_extractor`, `boundary_extractor`, `regex_extractor`, `css_extractor`, `xpath_extractor` |
 | Assertions | `response_assertion`, `duration_assertion`, `json_assertion` |
-| Config | `http_defaults`, `header_manager`, `cookie_manager`, `cache_manager`, `csv_data_set`, `jdbc_connection_config` |
-| Processors | `jsr223_postprocessor`, `jsr223_preprocessor` |
+| Config | `http_defaults`, `header_manager`, `cookie_manager`, `cache_manager`, `csv_data_set`, `jdbc_connection_config`, `user_defined_variables` |
+| PreProcessors | `user_parameters`, `jsr223_preprocessor` |
+| PostProcessors | `jsr223_postprocessor` |
 | Listeners | `view_results_tree`, `simple_data_writer`, `result_collector`, `backend_listener_influxdb` |
 
 字段名必须匹配 `scripts/jmx_tree_components.py` 中对应 `JMXComponentBuilder.build_*` 方法的参数。需要不常用节点时先检查该方法签名，不要猜测字段。
+
+### User Defined Variables
+
+测试计划全局变量可继续放在顶层 `test_plan.variables`。需要 Thread Group 或 Controller 作用域时，使用可嵌套的原生 `user_defined_variables`：
+
+```json
+{
+  "type": "user_defined_variables",
+  "name": "Thread-scoped constants",
+  "variables": {
+    "division_id": "3",
+    "master_location_id": "19198"
+  }
+}
+```
+
+`variables` 必须是非空对象，变量名必须是非空字符串，变量值必须是字符串。节点可放在任意 `children` 数组中，其变量作用域遵循 JMeter 树层级规则。
+
+### User Parameters
+
+运行期随机变量应使用原生 `user_parameters`，不得用 JSR223 模拟已批准的 User Parameters：
+
+```json
+{
+  "type": "user_parameters",
+  "name": "Per-report dynamic data",
+  "per_iteration": true,
+  "parameters": [
+    {"name": "firstName", "values": ["TEST${__Random(1000,9999)}"]},
+    {"name": "lastName", "values": ["TEST${__Random(1000,9999)}"]}
+  ]
+}
+```
+
+`parameters` 必须是非空有序数组，名称非空且唯一。每项的 `values` 必须是非空字符串数组，且所有数组长度相同；每个数组下标表示一个用户值列。`per_iteration=true` 表示每次经过父控制器只更新一次，适合让同一业务循环中的所有请求共享同一组随机值。
+
+### HTTP Request Defaults
+
+HTTP Request Defaults 的运行参数必须保留命令行覆盖能力。`host`、`port`、`protocol`必须使用 `${__P(propname,default)}`，不得传入字面量或普通 JMeter 变量：
+
+```json
+{"type":"http_defaults","host":"${__P(target_host,example.invalid)}","port":"${__P(target_port,443)}","protocol":"${__P(protocol,https)}"}
+```
+
+省略这些字段时，生成器仍会写入对应的 `__P` 默认表达式；不会写入固定值。
 
 ### CSS/XPath 提取器
 
@@ -140,6 +186,31 @@ python3 scripts/assemble_scenario.py \
 - TCP、Java、FTP、SMTP、LDAP、JMS、OS Process、JSR223 Sampler 和 Bolt 是 JMeter 本身支持的类型，但尚未注册为树形生成节点。
 - 树形生成器不会在生成阶段连接数据库，也不会验证 JDBC URL、账号或驱动是否真实可用。
 - 遇到未支持的 Sampler 时停止并向用户说明，不得使用相近节点代替。
+
+## JMeter 内置函数速查
+
+| 函数 | 语法 | 用途 |
+|---|---|---|
+| `__P` | `${__P(prop,default)}` | 读取属性，支持命令行 `-Jprop=value` 覆盖 |
+| `__property` | `${__property(prop,var,default)}` | 读取属性并可保存到变量 |
+| `__setProperty` | `${__setProperty(prop,value,)}` | 设置 JMeter 属性，供线程间共享 |
+| `__time` | `${__time(format,)}` | 获取当前时间 |
+| `__timeShift` | `${__timeShift(format,date,shift,,)}` | 时间偏移 |
+| `__Random` | `${__Random(min,max,)}` | 生成随机整数 |
+| `__RandomString` | `${__RandomString(len,chars,)}` | 生成随机字符串 |
+| `__UUID` | `${__UUID()}` | 生成 UUID |
+| `__counter` | `${__counter(TRUE,)}` | 递增计数器 |
+| `__V` | `${__V(Var${N},)}` | 嵌套变量引用 |
+| `__groovy` | `${__groovy(expr,)}` | 执行 Groovy 表达式 |
+| `__jexl3` | `${__jexl3(expr,)}` | 执行 JEXL3 表达式，适用于 If Controller |
+| `__digest` | `${__digest(algo,str,,,)}` | 计算哈希摘要 |
+| `__split` | `${__split(str,var,delim)}` | 拆分字符串 |
+| `__eval` | `${__eval(${var})}` | 对变量内容再次求值 |
+| `__log` | `${__log(msg,level,,)}` | 写入 JMeter 日志 |
+| `__threadNum` | `${__threadNum}` | 当前线程号 |
+| `__machineIP` | `${__machineIP}` | 本机 IP |
+
+完整参数说明和全部内置函数见 `references/functions_reference.md`。JSR223 元件优先使用 Groovy，并启用编译缓存；脚本内使用 `vars.get("varName")`，不要使用 `${varName}` 插值。
 
 ## 示例
 

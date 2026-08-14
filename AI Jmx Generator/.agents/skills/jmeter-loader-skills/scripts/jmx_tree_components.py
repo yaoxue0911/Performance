@@ -28,6 +28,13 @@ class JMXComponentBuilder:
         return element
 
     @staticmethod
+    def _require_jmeter_property(field_name: str, value: str) -> None:
+        if not (isinstance(value, str) and value.startswith("${__P(") and value.endswith(")}")):
+            raise ValueError(
+                f"{field_name} must use ${{__P(propname,default)}} syntax"
+            )
+
+    @staticmethod
     def _collection_prop(name: str) -> ET.Element:
         return ET.Element("collectionProp", {"name": name})
 
@@ -184,9 +191,18 @@ class JMXComponentBuilder:
         host: str = "${__P(target_host,localhost)}",
         port: str = "${__P(target_port,80)}",
         protocol: str = "${__P(protocol,http)}",
-        encoding: str = "UTF-8",
-        path: str = "",
+        encoding: str = "${__P(content_encoding,UTF-8)}",
+        path: str = "${__P(base_path,/)}",
     ) -> ET.Element:
+        for field_name, value in (
+            ("host", host),
+            ("port", port),
+            ("protocol", protocol),
+            ("encoding", encoding),
+            ("path", path),
+        ):
+            JMXComponentBuilder._require_jmeter_property(field_name, value)
+
         element = JMXComponentBuilder._named_element(
             "ConfigTestElement",
             "HttpDefaultsGui",
@@ -804,6 +820,7 @@ class JMXComponentBuilder:
         template: str = "$1$",
         match_number: str = "1",
         default_value: str = "NOT_FOUND",
+        scope: str = "parent",
     ) -> ET.Element:
         element = JMXComponentBuilder._named_element(
             "RegexExtractor", "RegexExtractorGui", "RegexExtractor", f"RE_{refname}"
@@ -817,6 +834,7 @@ class JMXComponentBuilder:
             ("RegexExtractor.default", default_value),
         ):
             element.append(JMXComponentBuilder._string_prop(prop_name, value))
+        element.append(JMXComponentBuilder._string_prop("Sample.scope", scope))
         return element
 
     @staticmethod
@@ -939,6 +957,97 @@ class JMXComponentBuilder:
             language,
             cache_key,
         )
+
+    @staticmethod
+    def build_user_parameters(
+        parameters: List[Dict[str, object]],
+        per_iteration: bool = True,
+    ) -> ET.Element:
+        if not isinstance(parameters, list) or not parameters:
+            raise ValueError("parameters must be a non-empty array")
+        if not isinstance(per_iteration, bool):
+            raise ValueError("per_iteration must be a boolean")
+
+        names: List[str] = []
+        value_rows: List[List[str]] = []
+        for index, parameter in enumerate(parameters):
+            if not isinstance(parameter, dict):
+                raise ValueError(f"parameters[{index}] must be an object")
+            name = parameter.get("name")
+            values = parameter.get("values")
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError(f"parameters[{index}].name must be a non-empty string")
+            if name in names:
+                raise ValueError(f"parameters contains duplicate name '{name}'")
+            if not isinstance(values, list) or not values:
+                raise ValueError(f"parameters[{index}].values must be a non-empty array")
+            if any(not isinstance(value, str) for value in values):
+                raise ValueError(f"parameters[{index}].values must contain only strings")
+            names.append(name)
+            value_rows.append(values)
+
+        column_count = len(value_rows[0])
+        if any(len(values) != column_count for values in value_rows):
+            raise ValueError("parameters values arrays must all have the same length")
+
+        element = JMXComponentBuilder._named_element(
+            "UserParameters",
+            "UserParametersGui",
+            "UserParameters",
+            "User Parameters",
+        )
+        names_element = JMXComponentBuilder._collection_prop("UserParameters.names")
+        for index, name in enumerate(names):
+            names_element.append(JMXComponentBuilder._string_prop(f"name_{index}", name))
+        element.append(names_element)
+
+        thread_values = JMXComponentBuilder._collection_prop(
+            "UserParameters.thread_values"
+        )
+        for column_index in range(column_count):
+            column = JMXComponentBuilder._collection_prop(f"user_{column_index}")
+            for row_index, values in enumerate(value_rows):
+                column.append(
+                    JMXComponentBuilder._string_prop(
+                        f"value_{row_index}", values[column_index]
+                    )
+                )
+            thread_values.append(column)
+        element.append(thread_values)
+        element.append(
+            JMXComponentBuilder._bool_prop(
+                "UserParameters.per_iteration", per_iteration
+            )
+        )
+        return element
+
+    @staticmethod
+    def build_user_defined_variables(
+        variables: Dict[str, str],
+    ) -> ET.Element:
+        if not isinstance(variables, dict) or not variables:
+            raise ValueError("variables must be a non-empty object")
+        for name, value in variables.items():
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError("variables names must be non-empty strings")
+            if not isinstance(value, str):
+                raise ValueError(f"variables['{name}'] must be a string")
+
+        element = JMXComponentBuilder._named_element(
+            "Arguments",
+            "ArgumentsPanel",
+            "Arguments",
+            "User Defined Variables",
+        )
+        arguments = JMXComponentBuilder._collection_prop("Arguments.arguments")
+        for name, value in variables.items():
+            argument = JMXComponentBuilder._element_prop(name, "Argument")
+            argument.append(JMXComponentBuilder._string_prop("Argument.name", name))
+            argument.append(JMXComponentBuilder._string_prop("Argument.value", value))
+            argument.append(JMXComponentBuilder._string_prop("Argument.metadata", "="))
+            arguments.append(argument)
+        element.append(arguments)
+        return element
 
     @staticmethod
     def build_result_collector(

@@ -47,6 +47,8 @@ COMPONENT_FACTORIES: dict[str, Callable[..., ET.Element]] = {
     "json_assertion": JMXComponentBuilder.build_json_assertion,
     "jsr223_postprocessor": JMXComponentBuilder.build_jsr223_postprocessor,
     "jsr223_preprocessor": JMXComponentBuilder.build_jsr223_preprocessor,
+    "user_parameters": JMXComponentBuilder.build_user_parameters,
+    "user_defined_variables": JMXComponentBuilder.build_user_defined_variables,
     "result_collector": JMXComponentBuilder.build_result_collector,
     "view_results_tree": JMXComponentBuilder.build_view_results_tree,
     "simple_data_writer": JMXComponentBuilder.build_simple_data_writer,

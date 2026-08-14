@@ -1,0 +1,415 @@
+{
+  "type": "transaction_controller",
+  "name": "Add property",
+  "children": [
+    {
+      "type": "http_sampler",
+      "name": "GET /RMS/aspsoft/popupdispatcher",
+      "method": "GET",
+      "path": "/RMS/aspsoft/popupdispatcher?nextPID=addCaseProperty&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_Property&template_id=2409&report_id=0&rnd=${property_popup_rnd}",
+      "follow_redirects": true,
+      "children": [
+        {
+          "type": "header_manager",
+          "name": "Headers for SAZ 44",
+          "headers": [
+            {
+              "name": "Referer",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/middlepage?nextPID=intakeFormMiddelPage&template_id=2409&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}"
+            }
+          ]
+        },
+        {
+          "type": "css_extractor",
+          "name": "Extract property_csrf",
+          "refname": "property_csrf",
+          "expression": "meta[name='csrf-token']",
+          "attribute": "content",
+          "match_number": "1",
+          "default_value": "NOT_FOUND",
+          "scope": "parent"
+        },
+        {
+          "type": "css_extractor",
+          "name": "Extract property_timestamp",
+          "refname": "property_timestamp",
+          "expression": "input[name='doubleEntryTimeStamp']",
+          "attribute": "value",
+          "match_number": "1",
+          "default_value": "NOT_FOUND",
+          "scope": "parent"
+        }
+      ]
+    },
+    {
+      "type": "http_sampler",
+      "name": "POST /RMS/aspsoft/EngineService/Dropdown",
+      "method": "POST",
+      "path": "/RMS/aspsoft/EngineService/Dropdown",
+      "follow_redirects": true,
+      "params": [
+        {
+          "name": "par",
+          "value": "VEHICLE@*addCaseProperty@property_sub_type@property_type",
+          "always_encode": true
+        },
+        {
+          "name": "rowID",
+          "value": "302811",
+          "always_encode": true
+        },
+        {
+          "name": "parents",
+          "value": "property_type@VEHICLE",
+          "always_encode": true
+        }
+      ],
+      "children": [
+        {
+          "type": "header_manager",
+          "name": "Headers for SAZ 45",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded; charset=UTF-8"
+            },
+            {
+              "name": "Origin",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}"
+            },
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "RequestVerificationToken",
+              "value": "${property_csrf}"
+            },
+            {
+              "name": "Referer",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/popupdispatcher?nextPID=addCaseProperty&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_Property&template_id=2409&report_id=0&rnd=${property_popup_rnd}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "http_sampler",
+      "name": "GET /RMS/Include/CommonModule/Remote",
+      "method": "GET",
+      "path": "/RMS/Include/CommonModule/Remote?action=CHECK_CASE_VEHICLE&case_id=${case_id}&vehicle_id=${vehicle_id}&property_status=23&rnd=0.${__Random(100000000,999999999,)}",
+      "follow_redirects": true,
+      "children": [
+        {
+          "type": "header_manager",
+          "name": "Headers for SAZ 46",
+          "headers": [
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "RequestVerificationToken",
+              "value": "${property_csrf}"
+            },
+            {
+              "name": "Referer",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/popupdispatcher?nextPID=addCaseProperty&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_Property&template_id=2409&report_id=0&rnd=${property_popup_rnd}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "http_sampler",
+      "name": "POST /RMS/aspsoft/popupdispatcher",
+      "method": "POST",
+      "path": "/RMS/aspsoft/popupdispatcher?nextPID=addCaseProperty&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_Property&template_id=2409&report_id=0&rnd=${property_popup_rnd}",
+      "follow_redirects": true,
+      "params": [
+        {
+          "name": "property_type~|property_add~|A",
+          "value": "VEHICLE",
+          "always_encode": true
+        },
+        {
+          "name": "property_sub_type~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "property_status~|property_add~|A",
+          "value": "23",
+          "always_encode": true
+        },
+        {
+          "name": "vehicle_id~|property_add~|A",
+          "value": "${vehicle_id}",
+          "always_encode": true
+        },
+        {
+          "name": "vehicle_vessel~|vehicle_add~|A",
+          "value": "VEHICLE",
+          "always_encode": true
+        },
+        {
+          "name": "plate_no~|vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "state~|vehicle_add~|A",
+          "value": "PA",
+          "always_encode": true
+        },
+        {
+          "name": "expiration_date~|case_vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "expiration_date~|case_vehicle_add~|A_txtDate",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "vin_no~|vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "year~|vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "mileage~|case_vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "make~|vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "model~|vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "body_type~|vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "color~|vehicle_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "vehicle_id~|vehicle_add~|A",
+          "value": "0",
+          "always_encode": true
+        },
+        {
+          "name": "active_flag~|case_vehicle_add~|A",
+          "value": "1",
+          "always_encode": true
+        },
+        {
+          "name": "case_id~|case_vehicle_add~|A",
+          "value": "${case_id}",
+          "always_encode": true
+        },
+        {
+          "name": "vehicle_id~|case_vehicle_add~|A",
+          "value": "0",
+          "always_encode": true
+        },
+        {
+          "name": "quantity~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "measurement_unit~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "value~|property_add~|A",
+          "value": "3000",
+          "always_encode": true
+        },
+        {
+          "name": "is_owner_with_vehicle~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "stored_loc~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "value_type~|property_add~|A",
+          "value": "FAIR MARKET VALUE",
+          "always_encode": true
+        },
+        {
+          "name": "release_restriction~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "is_biohazard~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "evidence_marking~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "lab_no~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "manufacturer~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "manufacturer_date~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "manufacturer_date~|property_add~|A_txtDate",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "found_by~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "found_loc~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "found_datetime~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "found_datetime~|property_add~|A_txtDate",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "found_datetime~|property_add~|A_txtTime",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "property_note~|property_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "submit_button",
+          "value": "Save",
+          "always_encode": true
+        },
+        {
+          "name": "property_id~|property_add~|D",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "case_id~|property_add~|A",
+          "value": "${case_id}",
+          "always_encode": true
+        },
+        {
+          "name": "PID",
+          "value": "addCaseProperty",
+          "always_encode": true
+        },
+        {
+          "name": "doubleEntryTimeStamp",
+          "value": "${property_timestamp}",
+          "always_encode": true
+        },
+        {
+          "name": "__RequestVerificationToken",
+          "value": "${property_csrf}",
+          "always_encode": true
+        }
+      ],
+      "children": [
+        {
+          "type": "header_manager",
+          "name": "Headers for SAZ 47",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Origin",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}"
+            },
+            {
+              "name": "Referer",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/popupdispatcher?nextPID=addCaseProperty&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_Property&template_id=2409&report_id=0&rnd=${property_popup_rnd}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "http_sampler",
+      "name": "GET /RMS/Aspsoft/IntakeForm/middlepage",
+      "method": "GET",
+      "path": "/RMS/Aspsoft/IntakeForm/middlepage?nextPID=intakeFormMiddelPage&template_id=2409&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}&PartialRefresh_Ajax=listIntakeFormMaster_Property&handler=partialrefresh&rnd=0.${__Random(100000000,999999999,)}",
+      "follow_redirects": true,
+      "children": [
+        {
+          "type": "header_manager",
+          "name": "Headers for SAZ 48",
+          "headers": [
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "RequestVerificationToken",
+              "value": "${middle_csrf}"
+            },
+            {
+              "name": "Referer",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/middlepage?nextPID=intakeFormMiddelPage&template_id=2409&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}"
+            }
+          ]
+        },
+        {
+          "type": "xpath_extractor",
+          "name": "Extract property_master_object",
+          "refname": "property_master_object",
+          "xpath_query": "//tr[.//*[contains(normalize-space(text()), '${plateNo}')]]//input[@objectname='master_id_list']/@value",
+          "match_number": "1",
+          "default_value": "NOT_FOUND",
+          "scope": "parent",
+          "use_tidy": true
+        }
+      ]
+    }
+  ]
+}

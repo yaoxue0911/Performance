@@ -76,5 +76,32 @@ python3 scripts/generate_jmx_tree.py \
 - 只调用 JSON 树形动态入口 `scripts/generate_jmx_tree.py`；
 - 生成链目标版本为 JMeter 5.6.3；
 - 动态 Sampler 支持 `http_sampler`、`jdbc_sampler` 和 `debug_sampler`；JDBC 场景必须同时配置 `jdbc_connection_config`。
+- 固定变量既支持顶层 `test_plan.variables`，也支持可嵌套的原生 `user_defined_variables`。
+- 运行期用户变量支持原生 `user_parameters`；批准计划要求 User Parameters 时不得改写成 JSR223。
 - 新场景必须同时包含 `view_results_tree`（默认启用、完整调试数据）和 `simple_data_writer`（默认禁用、轻量负载数据）。生成后必须告知用户：正式负载测试前禁用前者并启用后者。
 - 提取器支持 CSS Selector/HTML、XPath、JSON、Boundary 和正则。未注册类型不得伪造或用相近节点代替。
+
+## JMeter 内置函数速查
+
+| 函数 | 语法 | 用途 |
+|---|---|---|
+| `__P` | `${__P(prop,default)}` | 读取属性，支持命令行 `-Jprop=value` 覆盖 |
+| `__property` | `${__property(prop,var,default)}` | 读取属性并可保存到变量 |
+| `__setProperty` | `${__setProperty(prop,value,)}` | 设置 JMeter 属性，供线程间共享 |
+| `__time` | `${__time(format,)}` | 获取当前时间 |
+| `__timeShift` | `${__timeShift(format,date,shift,,)}` | 时间偏移 |
+| `__Random` | `${__Random(min,max,)}` | 生成随机整数 |
+| `__RandomString` | `${__RandomString(len,chars,)}` | 生成随机字符串 |
+| `__UUID` | `${__UUID()}` | 生成 UUID |
+| `__counter` | `${__counter(TRUE,)}` | 递增计数器 |
+| `__V` | `${__V(Var${N},)}` | 嵌套变量引用 |
+| `__groovy` | `${__groovy(expr,)}` | 执行 Groovy 表达式 |
+| `__jexl3` | `${__jexl3(expr,)}` | 执行 JEXL3 表达式，适用于 If Controller |
+| `__digest` | `${__digest(algo,str,,,)}` | 计算哈希摘要 |
+| `__split` | `${__split(str,var,delim)}` | 拆分字符串 |
+| `__eval` | `${__eval(${var})}` | 对变量内容再次求值 |
+| `__log` | `${__log(msg,level,,)}` | 写入 JMeter 日志 |
+| `__threadNum` | `${__threadNum}` | 当前线程号 |
+| `__machineIP` | `${__machineIP}` | 本机 IP |
+
+完整参数说明和全部内置函数见 `references/functions_reference.md`。JSR223 元件优先使用 Groovy，并启用编译缓存；脚本内使用 `vars.get("varName")`，不要使用 `${varName}` 插值。

@@ -1,0 +1,215 @@
+[
+  {
+    "type": "transaction_controller",
+    "name": "Select active case",
+    "children": [
+      {
+        "type": "http_sampler",
+        "name": "GET /RMS/inbox/list",
+        "method": "GET",
+        "path": "/RMS/inbox/list?nextPID=listInbox_MyActiveCase&inbox_staff_id=${staff_id}&inbox_sub_id=10030101&UseDefault=1&is_temp_page_size=1&page_size=100",
+        "follow_redirects": true,
+        "children": [
+          {
+            "type": "header_manager",
+            "name": "Headers for SAZ 14",
+            "headers": [
+              {
+                "name": "Referer",
+                "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Home?division_id=3"
+              }
+            ]
+          },
+          {
+            "type": "css_extractor",
+            "name": "Extract case_id",
+            "refname": "case_id",
+            "expression": "input[name='case_id']",
+            "attribute": "value",
+            "match_number": "0",
+            "default_value": "NOT_FOUND",
+            "scope": "parent"
+          }
+        ]
+      },
+      {
+        "type": "http_sampler",
+        "name": "GET /RMS/AspSoft/Dispatcher",
+        "method": "GET",
+        "path": "/RMS/AspSoft/Dispatcher?nextPID=inquireIncidentSummary&case_id=${case_id}",
+        "follow_redirects": true,
+        "children": [
+          {
+            "type": "header_manager",
+            "name": "Headers for SAZ 15",
+            "headers": [
+              {
+                "name": "Referer",
+                "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/inbox/list?nextPID=listInbox_MyActiveCase&inbox_staff_id=${staff_id}&inbox_sub_id=10030101&UseDefault=1&is_temp_page_size=1&page_size=100"
+              }
+            ]
+          },
+          {
+            "type": "regex_extractor",
+            "name": "Extract dept_case_no",
+            "refname": "dept_case_no",
+            "regex": "PD Case #:\\s*([0-9-]+)",
+            "template": "$1$",
+            "match_number": "1",
+            "default_value": "NOT_FOUND",
+            "scope": "all"
+          }
+        ]
+      },
+      {
+        "type": "http_sampler",
+        "name": "GET /RMS/Aspsoft/Dispatcher",
+        "method": "GET",
+        "path": "/RMS/Aspsoft/Dispatcher?nextPID=listPoliceReport&case_id=${case_id}&division_id=3&report_type=C&indicator_type=1",
+        "follow_redirects": true,
+        "children": [
+          {
+            "type": "header_manager",
+            "name": "Headers for SAZ 17",
+            "headers": [
+              {
+                "name": "Referer",
+                "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/AspSoft/Dispatcher?nextPID=inquireIncidentSummary&case_id=${case_id}"
+              }
+            ]
+          },
+          {
+            "type": "css_extractor",
+            "name": "Extract police_csrf",
+            "refname": "police_csrf",
+            "expression": "input[name='__RequestVerificationToken']",
+            "attribute": "value",
+            "match_number": "1",
+            "default_value": "NOT_FOUND",
+            "scope": "parent"
+          },
+          {
+            "type": "css_extractor",
+            "name": "Extract police_timestamp",
+            "refname": "police_timestamp",
+            "expression": "input[name='doubleEntryTimeStamp']",
+            "attribute": "value",
+            "match_number": "1",
+            "default_value": "NOT_FOUND",
+            "scope": "parent"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "transaction_controller",
+    "name": "Start new Property Release Form",
+    "children": [
+      {
+        "type": "http_sampler",
+        "name": "POST /RMS/Aspsoft/Dispatcher",
+        "method": "POST",
+        "path": "/RMS/Aspsoft/Dispatcher?nextPID=listPoliceReport&case_id=${case_id}&division_id=3&report_type=C&indicator_type=1",
+        "follow_redirects": true,
+        "params": [
+          {
+            "name": "case_locator~|~|A",
+            "value": "",
+            "always_encode": true
+          },
+          {
+            "name": "ddlPageSize",
+            "value": "30",
+            "always_encode": true
+          },
+          {
+            "name": "ddlPageSize",
+            "value": "30",
+            "always_encode": true
+          },
+          {
+            "name": "template_id~|~|A",
+            "value": "2409",
+            "always_encode": true
+          },
+          {
+            "name": "submit_button",
+            "value": "New Report",
+            "always_encode": true
+          },
+          {
+            "name": "PID",
+            "value": "listPoliceReport",
+            "always_encode": true
+          },
+          {
+            "name": "doubleEntryTimeStamp",
+            "value": "${police_timestamp}",
+            "always_encode": true
+          },
+          {
+            "name": "hdnSearchCriteriaPageID",
+            "value": "listPoliceReport",
+            "always_encode": true
+          },
+          {
+            "name": "__RequestVerificationToken",
+            "value": "${police_csrf}",
+            "always_encode": true
+          }
+        ],
+        "children": [
+          {
+            "type": "header_manager",
+            "name": "Headers for SAZ 19",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "name": "Origin",
+                "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}"
+              },
+              {
+                "name": "Referer",
+                "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/Dispatcher?nextPID=listPoliceReport&case_id=${case_id}&division_id=3&report_type=C&indicator_type=1"
+              }
+            ]
+          },
+          {
+            "type": "regex_extractor",
+            "name": "Extract FormGUID",
+            "refname": "FormGUID",
+            "regex": "FormGUID=([0-9a-fA-F-]{36})",
+            "template": "$1$",
+            "match_number": "1",
+            "default_value": "NOT_FOUND",
+            "scope": "all"
+          },
+          {
+            "type": "css_extractor",
+            "name": "Extract middle_csrf",
+            "refname": "middle_csrf",
+            "expression": "meta[name='csrf-token']",
+            "attribute": "content",
+            "match_number": "1",
+            "default_value": "NOT_FOUND",
+            "scope": "all"
+          },
+          {
+            "type": "xpath_extractor",
+            "name": "Extract case_master_object",
+            "refname": "case_master_object",
+            "xpath_query": "//input[@objectname='master_id_list' and contains(@value, concat('case_id#', '${case_id}', '#'))]/@value",
+            "match_number": "1",
+            "default_value": "NOT_FOUND",
+            "scope": "all",
+            "use_tidy": true
+          }
+        ]
+      }
+    ]
+  }
+]

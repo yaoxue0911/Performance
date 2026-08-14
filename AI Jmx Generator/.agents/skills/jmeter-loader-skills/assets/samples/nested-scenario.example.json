@@ -1,9 +1,6 @@
 {
   "test_plan": {
-    "name": "Example HTTP Business Flow",
-    "variables": {
-      "target_host": "example.invalid"
-    }
+    "name": "Example HTTP Business Flow"
   },
   "thread_groups": [
     {
@@ -15,12 +12,22 @@
       "children": [
         {
           "type": "http_defaults",
-          "host": "${target_host}",
-          "protocol": "https"
+          "host": "${__P(target_host,example.invalid)}",
+          "port": "${__P(target_port,443)}",
+          "protocol": "${__P(protocol,https)}",
+          "encoding": "${__P(content_encoding,UTF-8)}",
+          "path": "${__P(base_path,/)}"
         },
         {
           "type": "cookie_manager",
           "clear_each_iteration": false
+        },
+        {
+          "type": "user_defined_variables",
+          "name": "Example thread-scoped constants",
+          "variables": {
+            "division_id": "3"
+          }
         },
         {
           "type": "once_only_controller",
@@ -51,6 +58,19 @@
           "name": "Example Business Iteration",
           "loops": "${__P(business_loops,1)}",
           "children": [
+            {
+              "type": "user_parameters",
+              "name": "Example per-iteration data",
+              "per_iteration": true,
+              "parameters": [
+                {
+                  "name": "firstName",
+                  "values": [
+                    "TEST${__Random(1000,9999)}"
+                  ]
+                }
+              ]
+            },
             {
               "type": "transaction_controller",
               "name": "Example Business Transaction",

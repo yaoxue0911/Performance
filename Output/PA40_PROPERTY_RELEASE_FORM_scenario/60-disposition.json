@@ -1,0 +1,186 @@
+{
+  "type": "transaction_controller",
+  "name": "Add property disposition",
+  "children": [
+    {
+      "type": "http_sampler",
+      "name": "GET /RMS/Aspsoft/PopUpDispatcher",
+      "method": "GET",
+      "path": "/RMS/Aspsoft/PopUpDispatcher?nextPID=addPropertyDispose_Intake&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_PropertyDispose&template_id=2409&report_id=0&rnd=${disposition_popup_rnd}",
+      "follow_redirects": true,
+      "children": [
+        {
+          "type": "header_manager",
+          "name": "Headers for SAZ 49",
+          "headers": [
+            {
+              "name": "Referer",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/middlepage?nextPID=intakeFormMiddelPage&template_id=2409&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}"
+            }
+          ]
+        },
+        {
+          "type": "css_extractor",
+          "name": "Extract disposition_csrf",
+          "refname": "disposition_csrf",
+          "expression": "meta[name='csrf-token']",
+          "attribute": "content",
+          "match_number": "1",
+          "default_value": "NOT_FOUND",
+          "scope": "parent"
+        },
+        {
+          "type": "css_extractor",
+          "name": "Extract disposition_timestamp",
+          "refname": "disposition_timestamp",
+          "expression": "input[name='doubleEntryTimeStamp']",
+          "attribute": "value",
+          "match_number": "1",
+          "default_value": "NOT_FOUND",
+          "scope": "parent"
+        }
+      ]
+    },
+    {
+      "type": "http_sampler",
+      "name": "POST /RMS/Aspsoft/PopUpDispatcher",
+      "method": "POST",
+      "path": "/RMS/Aspsoft/PopUpDispatcher?nextPID=addPropertyDispose_Intake&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_PropertyDispose&template_id=2409&report_id=0&rnd=${disposition_popup_rnd}",
+      "follow_redirects": true,
+      "params": [
+        {
+          "name": "ReleasedDate~|intake_property_report_disposition_add~|A",
+          "value": "${releaseDate}",
+          "always_encode": true
+        },
+        {
+          "name": "ReleasedDate~|intake_property_report_disposition_add~|A_txtDate",
+          "value": "${releaseDate}",
+          "always_encode": true
+        },
+        {
+          "name": "ReleasedDate~|intake_property_report_disposition_add~|A_txtTime",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "ProofOfOwnership~|intake_property_report_disposition_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "SignatureOfOfficerAuthor~|intake_property_report_disposition_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "ReleasedToOwner~|intake_property_report_disposition_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "AddressOfOwner~|intake_property_report_disposition_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "SignatureOfOwner~|intake_property_report_disposition_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "SignatureOfOfficerRelease~|intake_property_report_disposition_add~|A",
+          "value": "",
+          "always_encode": true
+        },
+        {
+          "name": "DispositionStatus~|intake_property_report_disposition_add~|A",
+          "value": "Complete",
+          "always_encode": true
+        },
+        {
+          "name": "submit_button",
+          "value": "Save",
+          "always_encode": true
+        },
+        {
+          "name": "case_id~|intake_property_report_disposition_add~|A",
+          "value": "${case_id}",
+          "always_encode": true
+        },
+        {
+          "name": "PID",
+          "value": "addPropertyDispose_Intake",
+          "always_encode": true
+        },
+        {
+          "name": "doubleEntryTimeStamp",
+          "value": "${disposition_timestamp}",
+          "always_encode": true
+        },
+        {
+          "name": "__RequestVerificationToken",
+          "value": "${disposition_csrf}",
+          "always_encode": true
+        }
+      ],
+      "children": [
+        {
+          "type": "header_manager",
+          "name": "Headers for SAZ 50",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            },
+            {
+              "name": "Origin",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}"
+            },
+            {
+              "name": "Referer",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/PopUpDispatcher?nextPID=addPropertyDispose_Intake&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_PropertyDispose&template_id=2409&report_id=0&rnd=${disposition_popup_rnd}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "http_sampler",
+      "name": "GET /RMS/Aspsoft/IntakeForm/middlepage",
+      "method": "GET",
+      "path": "/RMS/Aspsoft/IntakeForm/middlepage?nextPID=intakeFormMiddelPage&template_id=2409&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}&PartialRefresh_Ajax=listIntakeFormMaster_PropertyDispose&handler=partialrefresh&rnd=0.${__Random(100000000,999999999,)}",
+      "follow_redirects": true,
+      "children": [
+        {
+          "type": "header_manager",
+          "name": "Headers for SAZ 51",
+          "headers": [
+            {
+              "name": "X-Requested-With",
+              "value": "XMLHttpRequest"
+            },
+            {
+              "name": "RequestVerificationToken",
+              "value": "${middle_csrf}"
+            },
+            {
+              "name": "Referer",
+              "value": "${__P(protocol,https)}://${__P(target_host,parms42test.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/middlepage?nextPID=intakeFormMiddelPage&template_id=2409&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}"
+            }
+          ]
+        },
+        {
+          "type": "xpath_extractor",
+          "name": "Extract disposition_master_object",
+          "refname": "disposition_master_object",
+          "xpath_query": "(//tr[.//span[@objectname='ReleasedDate' and starts-with(normalize-space(.), concat('${releaseDate}', ' '))] and .//span[@objectname='DispositionStatus']//a[normalize-space(.)='COMPLETE']]//input[@objectname='master_id_list']/@value)[1]",
+          "match_number": "1",
+          "default_value": "NOT_FOUND",
+          "scope": "parent",
+          "use_tidy": true
+        }
+      ]
+    }
+  ]
+}
