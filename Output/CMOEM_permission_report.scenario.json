@@ -1,0 +1,1531 @@
+{
+  "test_plan": {
+    "name": "CMOEM Permission and Investigation Report"
+  },
+  "thread_groups": [
+    {
+      "name": "CMOEM Permission and Report Stable Load",
+      "threads": "${__P(concurrency,1)}",
+      "rampup": "${__P(rampup,1)}",
+      "duration": "${__P(duration,600)}",
+      "loops": "-1",
+      "on_sample_error": "continue",
+      "same_user": true,
+      "children": [
+        {
+          "type": "http_defaults",
+          "host": "${__P(target_host,10.1.3.248)}",
+          "port": "${__P(target_port,80)}",
+          "protocol": "${__P(protocol,http)}",
+          "encoding": "${__P(content_encoding,UTF-8)}",
+          "path": "${__P(base_path,/)}"
+        },
+        {
+          "type": "cookie_manager",
+          "clear_each_iteration": false
+        },
+        {
+          "type": "cache_manager",
+          "clear_each_iteration": false,
+          "use_expires": true
+        },
+        {
+          "type": "once_only_controller",
+          "name": "Login once",
+          "children": [
+            {
+              "type": "http_sampler",
+              "name": "GET /InfoRMS30/Login.aspx",
+              "method": "GET",
+              "path": "/InfoRMS30/Login.aspx",
+              "follow_redirects": true,
+              "children": [
+                {
+                  "type": "css_extractor",
+                  "name": "Login VIEWSTATE",
+                  "refname": "login_viewstate",
+                  "expression": "input[name='__VIEWSTATE']",
+                  "attribute": "value",
+                  "match_number": "1",
+                  "default_value": "NOT_FOUND",
+                  "scope": "parent"
+                },
+                {
+                  "type": "css_extractor",
+                  "name": "Login VIEWSTATEGENERATOR",
+                  "refname": "login_viewstate_generator",
+                  "expression": "input[name='__VIEWSTATEGENERATOR']",
+                  "attribute": "value",
+                  "match_number": "1",
+                  "default_value": "NOT_FOUND",
+                  "scope": "parent"
+                }
+              ]
+            },
+            {
+              "type": "http_sampler",
+              "name": "POST /InfoRMS30/Login.aspx",
+              "method": "POST",
+              "path": "/InfoRMS30/Login.aspx",
+              "follow_redirects": true,
+              "params": [
+                {
+                  "name": "__VIEWSTATE",
+                  "value": "${login_viewstate}",
+                  "always_encode": true
+                },
+                {
+                  "name": "__VIEWSTATEGENERATOR",
+                  "value": "${login_viewstate_generator}",
+                  "always_encode": true
+                },
+                {
+                  "name": "txtUserName",
+                  "value": "sa01",
+                  "always_encode": true
+                },
+                {
+                  "name": "txtPassword",
+                  "value": "QyQhMTk5MCFuZjAkaGFyMzIwMjY=",
+                  "always_encode": true
+                },
+                {
+                  "name": "btnLogin",
+                  "value": "Login",
+                  "always_encode": true
+                },
+                {
+                  "name": "hdnDebugConn",
+                  "value": "",
+                  "always_encode": true
+                },
+                {
+                  "name": "hdnDeviceInfo",
+                  "value": "WUFPWFVFHzUwOUE0QzAwM0UyMkZQWDJYSjIfNTM0NzhkNWEzN2ViYjFlNGYxMjhlY2JmZjViMTEwMjZmZDVkOWUwYh9XaW5kb3dzH0ludGVsKFIpQ29yZShUTSlpNS02NTAwQ1BVQDMuMjBHSHofTWljcm9zb2Z0IFdpbmRvd3MgMTAgUHJvIDY0LWJpdB9yZWdPSw==",
+                  "always_encode": true
+                },
+                {
+                  "name": "usbKeyValue",
+                  "value": "",
+                  "always_encode": true
+                },
+                {
+                  "name": "computerNameValue",
+                  "value": "",
+                  "always_encode": true
+                }
+              ],
+              "children": [
+                {
+                  "type": "header_manager",
+                  "name": "Login headers",
+                  "headers": [
+                    {
+                      "name": "Content-Type",
+                      "value": "application/x-www-form-urlencoded"
+                    },
+                    {
+                      "name": "Origin",
+                      "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                    },
+                    {
+                      "name": "Referer",
+                      "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Login.aspx"
+                    }
+                  ]
+                },
+                {
+                  "type": "css_extractor",
+                  "name": "Disclaimer VIEWSTATE",
+                  "refname": "disclaimer_viewstate",
+                  "expression": "input[name='__VIEWSTATE']",
+                  "attribute": "value",
+                  "match_number": "1",
+                  "default_value": "NOT_FOUND",
+                  "scope": "all"
+                },
+                {
+                  "type": "css_extractor",
+                  "name": "Disclaimer VIEWSTATEGENERATOR",
+                  "refname": "disclaimer_viewstate_generator",
+                  "expression": "input[name='__VIEWSTATEGENERATOR']",
+                  "attribute": "value",
+                  "match_number": "1",
+                  "default_value": "NOT_FOUND",
+                  "scope": "all"
+                },
+                {
+                  "type": "css_extractor",
+                  "name": "Disclaimer EVENTVALIDATION",
+                  "refname": "disclaimer_eventvalidation",
+                  "expression": "input[name='__EVENTVALIDATION']",
+                  "attribute": "value",
+                  "match_number": "1",
+                  "default_value": "NOT_FOUND",
+                  "scope": "all"
+                }
+              ]
+            },
+            {
+              "type": "http_sampler",
+              "name": "POST /InfoRMS30/DisclaimerRedirect.aspx",
+              "method": "POST",
+              "path": "/InfoRMS30/DisclaimerRedirect.aspx?division_id=3",
+              "follow_redirects": true,
+              "params": [
+                {
+                  "name": "__VIEWSTATE",
+                  "value": "${disclaimer_viewstate}",
+                  "always_encode": true
+                },
+                {
+                  "name": "__VIEWSTATEGENERATOR",
+                  "value": "${disclaimer_viewstate_generator}",
+                  "always_encode": true
+                },
+                {
+                  "name": "__EVENTVALIDATION",
+                  "value": "${disclaimer_eventvalidation}",
+                  "always_encode": true
+                },
+                {
+                  "name": "btnJump",
+                  "value": "",
+                  "always_encode": true
+                }
+              ],
+              "children": [
+                {
+                  "type": "header_manager",
+                  "name": "Disclaimer headers",
+                  "headers": [
+                    {
+                      "name": "Content-Type",
+                      "value": "application/x-www-form-urlencoded"
+                    },
+                    {
+                      "name": "Origin",
+                      "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                    },
+                    {
+                      "name": "Referer",
+                      "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Index.aspx"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "http_sampler",
+              "name": "GET /InfoRMS30/Home.aspx",
+              "method": "GET",
+              "path": "/InfoRMS30/Home.aspx?division_id=3",
+              "follow_redirects": true
+            }
+          ]
+        },
+        {
+          "type": "loop_controller",
+          "name": "Case permission and report loop",
+          "loops": "-1",
+          "children": [
+            {
+              "type": "csv_data_set",
+              "name": "Case IDs",
+              "filename": "CMOEM case id.csv",
+              "variable_names": "case_id",
+              "delimiter": ",",
+              "ignore_first_line": true,
+              "recycle": true,
+              "stop_thread": false,
+              "share_mode": "shareMode.all"
+            },
+            {
+              "type": "user_parameters",
+              "name": "Per-case request values",
+              "per_iteration": true,
+              "parameters": [
+                {
+                  "name": "njs_popup_rnd",
+                  "values": [
+                    "0.${__Random(100000000,999999999,)}"
+                  ]
+                },
+                {
+                  "name": "intake_page_rnd",
+                  "values": [
+                    "0.${__Random(100000000,999999999,)}"
+                  ]
+                },
+                {
+                  "name": "workflow_rnd_1",
+                  "values": [
+                    "0.${__Random(100000000,999999999,)}"
+                  ]
+                },
+                {
+                  "name": "workflow_rnd_2",
+                  "values": [
+                    "0.${__Random(100000000,999999999,)}"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "http_sampler",
+              "name": "Open case incident summary",
+              "method": "GET",
+              "path": "/InfoRMS30/AspSoft/Dispatcher.aspx?nextPID=inquireIncidentSummary&case_id=${case_id}",
+              "follow_redirects": true,
+              "children": [
+                {
+                  "type": "header_manager",
+                  "name": "Open case headers",
+                  "headers": [
+                    {
+                      "name": "Referer",
+                      "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/inbox/inboxTaskList.aspx?nextPID=listInbox_ActiveCase_NO&inbox_staff_id=1&inbox_sub_id=10030811&UseDefault=1&is_temp_page_size=1&page_size=100"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "transaction_controller",
+              "name": "Modify case permission",
+              "parent": true,
+              "include_timers": false,
+              "children": [
+                {
+                  "type": "http_sampler",
+                  "name": "GET /InfoRMS30/AspSoft/Security/CasePermission.aspx",
+                  "method": "GET",
+                  "path": "/InfoRMS30/AspSoft/Security/CasePermission.aspx?nextPID=casepermission&case_id=${case_id}&division_id=3",
+                  "follow_redirects": true,
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Permission page headers",
+                      "headers": [
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/Dispatcher.aspx?nextPID=inquireIncidentSummary&case_id=${case_id}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Permission VIEWSTATE",
+                      "refname": "permission_viewstate",
+                      "expression": "input[name='__VIEWSTATE']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Permission VIEWSTATEGENERATOR",
+                      "refname": "permission_viewstate_generator",
+                      "expression": "input[name='__VIEWSTATEGENERATOR']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /InfoRMS30/AspSoft/Security/CasePermission.aspx",
+                  "method": "POST",
+                  "path": "/InfoRMS30/AspSoft/Security/CasePermission.aspx?nextPID=casepermission&case_id=${case_id}&division_id=3",
+                  "follow_redirects": true,
+                  "params": [
+                    {
+                      "name": "__EVENTTARGET",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTARGUMENT",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00_ContentPlaceHolder1_tvRole_ExpandState",
+                      "value": "ennnnnnnnnennennnnnnnennnnnnnnnnnennneennnnnennnnnnennnnnennnnnnnnnnennnnnnnnnnennnnnnennnennnnnnnnnnnnennnnnnnnennnnnnnennnneennnnnnennnnnennnnnnnnnennnnnnnnnnennnnneennnnnnnnenennnnnennnnnnnnnnennnnnnnnnnnnennnnnnnnnennnnnnnnnnnennnennenneennnnnnnnnnnennnennnnnnennnnnnennnnnnnnnennnnnnnennnnnnennnennnnnnnnnnnnennnennnnnnnnnnennnennnnnnnnnnnennneennnnnnnnnnnennnnnnnnnennennnnnnnnnnnennnenennnnnnnnnnnnnnnneennnnnnnnnnnnnnnnnnnnennnennnnnnnnnnennnennnnnnnnnnnennnennnnnnnnnnnnennnnnnennnnnnnnnnnnennnnnnnnennnnnnnnnnennneennnnnnnnnnnnnnennnnnnnnnnnnenn",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00_ContentPlaceHolder1_tvRole_SelectedNode",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00_ContentPlaceHolder1_tvRole_PopulateLog",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATE",
+                      "value": "${permission_viewstate}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATEGENERATOR",
+                      "value": "${permission_viewstate_generator}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ctl15$case_locator~|~|A",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ddlCaseOpen",
+                      "value": "LTD",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$btnApply",
+                      "value": "Apply",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hidOwnerID",
+                      "value": "1",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$hdnFocusObjectId",
+                      "value": "",
+                      "always_encode": true
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Permission save headers",
+                      "headers": [
+                        {
+                          "name": "Content-Type",
+                          "value": "application/x-www-form-urlencoded"
+                        },
+                        {
+                          "name": "Origin",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/Security/CasePermission.aspx?nextPID=casepermission&case_id=${case_id}&division_id=3"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "transaction_controller",
+              "name": "Add investigation report",
+              "parent": true,
+              "include_timers": false,
+              "children": [
+                {
+                  "type": "http_sampler",
+                  "name": "GET /InfoRMS30/Aspsoft/Dispatcher.aspx",
+                  "method": "GET",
+                  "path": "/InfoRMS30/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&case_id=${case_id}&division_id=3&report_type=C&indicator_type=1",
+                  "follow_redirects": true,
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Police report list headers",
+                      "headers": [
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/Security/CasePermission.aspx?nextPID=casepermission&case_id=${case_id}&division_id=3"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Report list VIEWSTATE",
+                      "refname": "report_list_viewstate",
+                      "expression": "input[name='__VIEWSTATE']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Report list VIEWSTATEGENERATOR",
+                      "refname": "report_list_viewstate_generator",
+                      "expression": "input[name='__VIEWSTATEGENERATOR']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Report list timestamp",
+                      "refname": "report_list_timestamp",
+                      "expression": "input[name$='doubleEntryTimeStamp']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /InfoRMS30/Aspsoft/Dispatcher.aspx",
+                  "method": "POST",
+                  "path": "/InfoRMS30/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&case_id=${case_id}&division_id=3&report_type=C&indicator_type=1",
+                  "follow_redirects": true,
+                  "params": [
+                    {
+                      "name": "__VIEWSTATE",
+                      "value": "${report_list_viewstate}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATEGENERATOR",
+                      "value": "${report_list_viewstate_generator}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTTARGET",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTARGUMENT",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ctl15$case_locator~|~|A",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$gridview_ddlPageSize",
+                      "value": "30",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$gridview_ddlPageSize",
+                      "value": "30",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$template_id~|~|A",
+                      "value": "588",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "submit_button",
+                      "value": "New Report",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$PID",
+                      "value": "listPoliceReport",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$doubleEntryTimeStamp",
+                      "value": "${report_list_timestamp}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$hdnFocusObjectId",
+                      "value": "",
+                      "always_encode": true
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "New report headers",
+                      "headers": [
+                        {
+                          "name": "Content-Type",
+                          "value": "application/x-www-form-urlencoded"
+                        },
+                        {
+                          "name": "Origin",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&case_id=${case_id}&division_id=3&report_type=C&indicator_type=1"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "regex_extractor",
+                      "name": "Extract FormGUID",
+                      "refname": "FormGUID",
+                      "regex": "FormGUID=([0-9a-fA-F-]+)",
+                      "template": "$1$",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "all"
+                    },
+                    {
+                      "type": "xpath_extractor",
+                      "name": "Extract case master object",
+                      "refname": "case_master_object",
+                      "xpath_query": "//input[@objectname='master_id_list' and contains(@value, concat('case_id#', '${case_id}', '#'))]/@value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "all",
+                      "use_tidy": true
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "GET /InfoRMS30/aspsoft/popupdispatcher.aspx",
+                  "method": "GET",
+                  "path": "/InfoRMS30/aspsoft/popupdispatcher.aspx?nextPID=addCaseNJSCode&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_NJS&template_id=588&report_id=0&rnd=${njs_popup_rnd}",
+                  "follow_redirects": true,
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "NJS popup headers",
+                      "headers": [
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&template_id=588&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "NJS VIEWSTATE",
+                      "refname": "njs_viewstate",
+                      "expression": "input[name='__VIEWSTATE']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "NJS VIEWSTATEGENERATOR",
+                      "refname": "njs_viewstate_generator",
+                      "expression": "input[name='__VIEWSTATEGENERATOR']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "NJS EVENTVALIDATION",
+                      "refname": "njs_eventvalidation",
+                      "expression": "input[name='__EVENTVALIDATION']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "NJS timestamp",
+                      "refname": "njs_timestamp",
+                      "expression": "input[name$='doubleEntryTimeStamp']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /InfoRMS30/aspsoft/popupdispatcher.aspx",
+                  "method": "POST",
+                  "path": "/InfoRMS30/aspsoft/popupdispatcher.aspx?nextPID=addCaseNJSCode&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_NJS&template_id=588&report_id=0&rnd=${njs_popup_rnd}",
+                  "follow_redirects": true,
+                  "params": [
+                    {
+                      "name": "__VIEWSTATE",
+                      "value": "${njs_viewstate}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATEGENERATOR",
+                      "value": "${njs_viewstate_generator}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTVALIDATION",
+                      "value": "${njs_eventvalidation}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "addNJSCode_delete",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "addNJSCode_indicator",
+                      "value": "1",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$ctl03$inv_njs_id~|addNJSCode~|A",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_count~|addNJSCode~|A",
+                      "value": "1",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_description~|addNJSCode~|A",
+                      "value": "POSS MARIHUAN >25G",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_code~|addNJSCode~|A",
+                      "value": "24:21-20A(4)",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "submit_button",
+                      "value": "Save",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$PID",
+                      "value": "addCaseNJSCode",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ctl00$doubleEntryTimeStamp",
+                      "value": "${njs_timestamp}",
+                      "always_encode": true
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "NJS save headers",
+                      "headers": [
+                        {
+                          "name": "Content-Type",
+                          "value": "application/x-www-form-urlencoded"
+                        },
+                        {
+                          "name": "Origin",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/aspsoft/popupdispatcher.aspx?nextPID=addCaseNJSCode&case_id=${case_id}&PartialRefresh=listIntakeFormMaster_NJS&template_id=588&report_id=0&rnd=${njs_popup_rnd}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "GET /InfoRMS30/Aspsoft/IntakeForm/middlepage.aspx",
+                  "method": "GET",
+                  "path": "/InfoRMS30/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&template_id=588&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}&PartialRefresh_Ajax=listIntakeFormMaster_NJS&rnd=0.${__Random(100000000,999999999,)}",
+                  "follow_redirects": true,
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "NJS refresh headers",
+                      "headers": [
+                        {
+                          "name": "X-Requested-With",
+                          "value": "XMLHttpRequest"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&template_id=588&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "regex_extractor",
+                      "name": "Extract inv_njs_id",
+                      "refname": "inv_njs_id",
+                      "regex": "name=['\"]inv_njs_id['\"][^>]*value=['\"](\\d+)['\"]",
+                      "template": "$1$",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /InfoRMS30/Aspsoft/IntakeForm/middlepage.aspx",
+                  "method": "POST",
+                  "path": "/InfoRMS30/Aspsoft/IntakeForm/middlepage.aspx?action=create_report&nextPID=intakeFormMiddelPage&case_id=${case_id}&rnd=0.${__Random(100000000,999999999,)}",
+                  "follow_redirects": true,
+                  "params": [
+                    {
+                      "name": "template_id",
+                      "value": "588",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "report_id",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "p",
+                      "value": "${objects_parameter_b64}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "p2",
+                      "value": "${objects_data_index_b64}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "p3",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "PageNum",
+                      "value": "",
+                      "always_encode": true
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Create report headers",
+                      "headers": [
+                        {
+                          "name": "X-Requested-With",
+                          "value": "XMLHttpRequest"
+                        },
+                        {
+                          "name": "Content-Type",
+                          "value": "application/x-www-form-urlencoded; charset=UTF-8"
+                        },
+                        {
+                          "name": "Origin",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&template_id=588&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "jsr223_preprocessor",
+                      "name": "Build NJS and case object payload",
+                      "language": "groovy",
+                      "cache_key": true,
+                      "script": "import java.nio.charset.StandardCharsets\nimport java.util.Base64\n\ndef required = { String name ->\n    def value = vars.get(name)\n    if (value == null || value == '' || value == 'NOT_FOUND') {\n        throw new IllegalStateException('Missing required variable: ' + name)\n    }\n    value\n}\ndef idFrom = { String value, String key ->\n    def matcher = (value =~ java.util.regex.Pattern.quote(key) + '#(\\\\d+)#')\n    if (!matcher.find()) {\n        throw new IllegalStateException('Cannot extract ' + key + ' from ' + value)\n    }\n    matcher.group(1)\n}\n\ndef caseObject = required('case_master_object')\ndef caseId = idFrom(caseObject, 'case_id')\ndef njsId = required('inv_njs_id')\ndef njsObject = 'inv_njs_id#' + njsId + '#'\ndef objectParameter = 'NJS::' + njsObject + '\\u0003' + 'CASE:CASE:' + caseObject\ndef objectDataIndex = 'NJS::inv_njs_id:' + njsId + ':' + njsObject + '\\u0002' + 'CASE:CASE:case_id:' + caseId + ':' + caseObject\nvars.put('objects_parameter_b64', Base64.encoder.encodeToString(objectParameter.getBytes(StandardCharsets.UTF_8)))\nvars.put('objects_data_index_b64', Base64.encoder.encodeToString(objectDataIndex.getBytes(StandardCharsets.UTF_8)))"
+                    },
+                    {
+                      "type": "regex_extractor",
+                      "name": "Extract report_id",
+                      "refname": "report_id",
+                      "regex": "(?s)^\\s*(\\d+)\\s*$",
+                      "template": "$1$",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "GET /InfoRMS30/Aspsoft/IntakeForm/Intake.aspx",
+                  "method": "GET",
+                  "path": "/InfoRMS30/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&MPID=intakeFormMiddelPage&case_id=${case_id}&template_id=588&report_id=${report_id}&rnd=${intake_page_rnd}",
+                  "follow_redirects": true,
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Intake page headers",
+                      "headers": [
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&template_id=588&report_id=0&case_id=${case_id}&PID=listPoliceReport&FormGUID=${FormGUID}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Intake VIEWSTATE",
+                      "refname": "intake_viewstate",
+                      "expression": "input[name='__VIEWSTATE']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Intake VIEWSTATEGENERATOR",
+                      "refname": "intake_viewstate_generator",
+                      "expression": "input[name='__VIEWSTATEGENERATOR']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Intake EVENTVALIDATION",
+                      "refname": "intake_eventvalidation",
+                      "expression": "input[name='__EVENTVALIDATION']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /InfoRMS30/AspSoft/IntakeForm/Intake.aspx",
+                  "method": "POST",
+                  "path": "/InfoRMS30/AspSoft/IntakeForm/Intake.aspx?action=auto_confirm&save_data=1&case_id=${case_id}&template_id=588&report_id=${report_id}&rnd=0.${__Random(100000000,999999999,)}",
+                  "follow_redirects": true,
+                  "params": [
+                    {
+                      "name": "__VIEWSTATE",
+                      "value": "${intake_viewstate}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATEGENERATOR",
+                      "value": "${intake_viewstate_generator}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTVALIDATION",
+                      "value": "${intake_eventvalidation}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ctl15$case_locator~|~|A",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ORG_IMAGE",
+                      "value": "/AspSoft/ImageHandler.ashx?image_code=AGENCY_LOGO&smalllogo=1&region_id=100000",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "CASE_NO_TYPE",
+                      "value": "INVESTIGATION_NO",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "CASE_TYPE_NO",
+                      "value": "2026000001",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "call_type",
+                      "value": "POSS MARIHUAN >25G",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "njs_code",
+                      "value": "24:21-20A(4)",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "between",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "premises_type",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "weapon",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "modus_operandi",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "INV_VEHICLE_TYPE",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "TOW_COMPANY",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "teletype_alarm",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "technical_services",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "technician_agency",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "weather",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "nic",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "assisting_agencies",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "no_accused",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "adult",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "juvenile",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "status_crime",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "CASE_STATUS",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ucr_status",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "date_cleared",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "CASE_MEMO",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnTemplateID",
+                      "value": "588",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnTemplateCode",
+                      "value": "RMS_INVESTIGATIONREPORT",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnRequiredTemplateCode",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnReportID",
+                      "value": "${report_id}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnPrintPopup",
+                      "value": "Y",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnHazMatReportIDs",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnCaseID",
+                      "value": "${case_id}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnNextPID",
+                      "value": "listPoliceReport",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnDivisionID",
+                      "value": "3",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnNoMathchKeyList",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnTotalPageNumber",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnCurrentPageIndex",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnToPageURL",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnTotalReportNumber",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnCurrentReportIndex",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnToReportURL",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnSplitObjectName",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnCurrentReportObjectValue",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnCurrentReportObjectFiled",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnRichTextBoxNames",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnUrlOtherIds",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnIntakeWorkflowConfirmKey",
+                      "value": "N",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnMasterPageFile",
+                      "value": "/InfoRMS30/AspSoft/Frame.Master",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnPrintDirectly",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnParentID",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$hdnParentTemplateID",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$__hdnTempMultisection_call_type",
+                      "value": "POSS MARIHUAN >25G",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$__hdnTempMultisection_njs_code",
+                      "value": "24:21-20A(4)",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$hdnFocusObjectId",
+                      "value": "",
+                      "always_encode": true
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Auto-confirm headers",
+                      "headers": [
+                        {
+                          "name": "X-Requested-With",
+                          "value": "XMLHttpRequest"
+                        },
+                        {
+                          "name": "Content-Type",
+                          "value": "application/x-www-form-urlencoded; charset=UTF-8"
+                        },
+                        {
+                          "name": "Origin",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&MPID=intakeFormMiddelPage&case_id=${case_id}&template_id=588&report_id=${report_id}&rnd=${intake_page_rnd}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "GET /InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+                  "method": "GET",
+                  "path": "/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}",
+                  "follow_redirects": true,
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Workflow page headers",
+                      "headers": [
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&MPID=intakeFormMiddelPage&case_id=${case_id}&template_id=588&report_id=${report_id}&rnd=${intake_page_rnd}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Workflow VIEWSTATE",
+                      "refname": "workflow_viewstate",
+                      "expression": "input[name='__VIEWSTATE']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    },
+                    {
+                      "type": "css_extractor",
+                      "name": "Workflow VIEWSTATEGENERATOR",
+                      "refname": "workflow_viewstate_generator",
+                      "expression": "input[name='__VIEWSTATEGENERATOR']",
+                      "attribute": "value",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "scope": "parent"
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+                  "method": "POST",
+                  "path": "/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}",
+                  "follow_redirects": true,
+                  "params": [
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ScriptManager1",
+                      "value": "ctl00$ContentPlaceHolder1$UpdatePanel1|ctl00$ContentPlaceHolder1$ddlReportNextStep",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTTARGET",
+                      "value": "ctl00$ContentPlaceHolder1$ddlReportNextStep",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTARGUMENT",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__LASTFOCUS",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATE",
+                      "value": "${workflow_viewstate}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATEGENERATOR",
+                      "value": "${workflow_viewstate_generator}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ddlReportNextStep",
+                      "value": "ROUTE1",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$nbReviewNote",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidRouteType",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidReviewNote",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidFlag",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__ASYNCPOST",
+                      "value": "true",
+                      "always_encode": true
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Workflow selection headers",
+                      "headers": [
+                        {
+                          "name": "X-Requested-With",
+                          "value": "XMLHttpRequest"
+                        },
+                        {
+                          "name": "Content-Type",
+                          "value": "application/x-www-form-urlencoded; charset=UTF-8"
+                        },
+                        {
+                          "name": "Origin",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "boundary_extractor",
+                      "name": "Extract updated workflow VIEWSTATE",
+                      "refname": "workflow_updated_viewstate",
+                      "left_boundary": "hiddenField|__VIEWSTATE|",
+                      "right_boundary": "|8|hiddenField|__VIEWSTATEGENERATOR|",
+                      "match_number": "1",
+                      "default_value": "NOT_FOUND",
+                      "use_headers": "false"
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+                  "method": "POST",
+                  "path": "/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+                  "follow_redirects": true,
+                  "params": [
+                    {
+                      "name": "action",
+                      "value": "clear",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "report_ids",
+                      "value": "${report_id}",
+                      "always_encode": true
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Workflow clear headers",
+                      "headers": [
+                        {
+                          "name": "X-Requested-With",
+                          "value": "XMLHttpRequest"
+                        },
+                        {
+                          "name": "Content-Type",
+                          "value": "application/x-www-form-urlencoded; charset=UTF-8"
+                        },
+                        {
+                          "name": "Origin",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "POST /InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+                  "method": "POST",
+                  "path": "/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}",
+                  "follow_redirects": true,
+                  "params": [
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$ddlReportNextStep",
+                      "value": "ROUTE1",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$nbReviewNote",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$btnSave",
+                      "value": "Save",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidRouteType",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidReviewNote",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidFlag",
+                      "value": "0",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTTARGET",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__EVENTARGUMENT",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__LASTFOCUS",
+                      "value": "",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATE",
+                      "value": "${workflow_updated_viewstate}",
+                      "always_encode": true
+                    },
+                    {
+                      "name": "__VIEWSTATEGENERATOR",
+                      "value": "${workflow_viewstate_generator}",
+                      "always_encode": true
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Workflow save headers",
+                      "headers": [
+                        {
+                          "name": "Content-Type",
+                          "value": "application/x-www-form-urlencoded"
+                        },
+                        {
+                          "name": "Origin",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"
+                        },
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "http_sampler",
+                  "name": "GET /InfoRMS30/Aspsoft/Dispatcher.aspx",
+                  "method": "GET",
+                  "path": "/InfoRMS30/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&case_id=${case_id}&division_id=3",
+                  "follow_redirects": true,
+                  "children": [
+                    {
+                      "type": "header_manager",
+                      "name": "Return to report list headers",
+                      "headers": [
+                        {
+                          "name": "Referer",
+                          "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&MPID=intakeFormMiddelPage&case_id=${case_id}&template_id=588&report_id=${report_id}&rnd=${intake_page_rnd}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "view_results_tree",
+          "name": "View Results Tree",
+          "filename": "${__P(debug_result_file,CMOEM_permission_report_debug.jtl)}"
+        },
+        {
+          "type": "simple_data_writer",
+          "name": "Simple Data Writer",
+          "filename": "${__P(load_result_file,CMOEM_permission_report_load.jtl)}"
+        }
+      ]
+    }
+  ]
+}

@@ -13,6 +13,7 @@ SCRIPTS_DIR = Path(__file__).resolve().parents[1]
 GENERATOR_PATH = SCRIPTS_DIR / "generate_jmx_tree.py"
 COMPONENTS_PATH = SCRIPTS_DIR / "jmx_tree_components.py"
 SKILL_PATH = SCRIPTS_DIR.parent / "SKILL.md"
+JMX_STRUCTURE_PATH = SCRIPTS_DIR.parent / "references" / "jmx_structure.md"
 
 
 def load_generator():
@@ -135,6 +136,12 @@ class TreeGeneratorTests(unittest.TestCase):
             defaults.findtext("stringProp[@name='HTTPSampler.path']"),
             "${__P(base_path,/)}",
         )
+        self.assertIsNotNone(
+            defaults.find("stringProp[@name='HTTPSampler.embedded_url_re']")
+        )
+        self.assertIsNone(
+            defaults.find("boolProp[@name='HTTPSampler.embedded_url_re']")
+        )
 
     def test_http_defaults_reject_literal_runtime_fields(self):
         generator = load_generator()
@@ -182,6 +189,9 @@ class TreeGeneratorTests(unittest.TestCase):
         assertion = sampler_tree.find("ResponseAssertion")
         self.assertIsNotNone(assertion)
         self.assertEqual(assertion.get("testname"), "Authenticated Page")
+        self.assertIsNotNone(
+            assertion.find("collectionProp[@name='Asserion.test_strings']")
+        )
 
     def test_empty_once_only_controller_is_rejected(self):
         generator = load_generator()
@@ -526,10 +536,12 @@ class TreeGeneratorTests(unittest.TestCase):
         sampler = root.find(".//JDBCSampler")
 
         self.assertIsNotNone(connection)
+        self.assertEqual(connection.get("guiclass"), "TestBeanGUI")
         self.assertEqual(connection.findtext("stringProp[@name='dataSource']"), "app_db")
         self.assertEqual(connection.findtext("stringProp[@name='dbUrl']"), "jdbc:h2:mem:test")
         self.assertEqual(connection.findtext("stringProp[@name='driver']"), "org.h2.Driver")
         self.assertIsNotNone(sampler)
+        self.assertEqual(sampler.get("guiclass"), "TestBeanGUI")
         self.assertEqual(sampler.findtext("stringProp[@name='dataSource']"), "app_db")
         self.assertEqual(sampler.findtext("stringProp[@name='queryType']"), "Prepared Select Statement")
         self.assertEqual(sampler.findtext("stringProp[@name='queryArgumentsTypes']"), "VARCHAR")
@@ -590,6 +602,203 @@ class TreeGeneratorTests(unittest.TestCase):
         self.assertEqual(load.findtext("objProp/value/responseData"), "false")
         self.assertEqual(load.findtext("objProp/value/responseHeaders"), "false")
         self.assertEqual(load.findtext("objProp/value/xml"), "false")
+
+    def test_transaction_controller_uses_jmeter_563_include_timers_property(self):
+        generator = load_generator()
+        root = ET.fromstring(generator.build_jmx(nested_scenario()))
+
+        for transaction in root.findall(".//TransactionController"):
+            with self.subTest(name=transaction.get("testname")):
+                self.assertEqual(
+                    transaction.findtext(
+                        "boolProp[@name='TransactionController.includeTimers']"
+                    ),
+                    "false",
+                )
+                self.assertIsNone(
+                    transaction.find(
+                        "boolProp[@name='TransactionController.include_timers']"
+                    )
+                )
+
+    def test_synchronizing_timer_uses_official_aliases_and_property_types(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        scenario["thread_groups"][0]["children"].append(
+            {"type": "synchronizing_timer", "group_size": "7", "timeout_ms": "9000"}
+        )
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        timer = root.find(".//SyncTimer")
+
+        self.assertIsNotNone(timer)
+        self.assertEqual(timer.get("guiclass"), "TestBeanGUI")
+        self.assertEqual(timer.get("testclass"), "SyncTimer")
+        self.assertEqual(timer.findtext("intProp[@name='groupSize']"), "7")
+        self.assertEqual(timer.findtext("longProp[@name='timeoutInMs']"), "9000")
+        self.assertIsNone(root.find(".//Synchronizer"))
+
+    def test_extractors_use_jmeter_563_property_names(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        sampler = scenario["thread_groups"][0]["children"][2]["children"][0]
+        sampler["children"] = [
+            {
+                "type": "json_extractor",
+                "refname": "token",
+                "json_path": "$.token",
+                "default_value": "MISSING",
+            },
+            {
+                "type": "boundary_extractor",
+                "refname": "viewstate",
+                "left_boundary": "left",
+                "right_boundary": "right",
+                "match_number": "2",
+                "default_value": "MISSING",
+                "default_empty_value": True,
+            },
+        ]
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        json_extractor = root.find(".//JSONPostProcessor")
+        boundary = root.find(".//BoundaryExtractor")
+
+        self.assertEqual(
+            json_extractor.findtext(
+                "stringProp[@name='JSONPostProcessor.defaultValues']"
+            ),
+            "MISSING",
+        )
+        expected_boundary_properties = {
+            "BoundaryExtractor.lboundary": "left",
+            "BoundaryExtractor.rboundary": "right",
+            "BoundaryExtractor.default": "MISSING",
+            "BoundaryExtractor.match_number": "2",
+        }
+        for name, value in expected_boundary_properties.items():
+            with self.subTest(name=name):
+                self.assertEqual(
+                    boundary.findtext(f"stringProp[@name='{name}']"), value
+                )
+        self.assertEqual(
+            boundary.findtext(
+                "boolProp[@name='BoundaryExtractor.default_empty_value']"
+            ),
+            "true",
+        )
+        for obsolete_name in (
+            "BoundaryExtractor.boundaries",
+            "BoundaryExtractor.rightBoundary",
+            "BoundaryExtractor.defaultValue",
+            "BoundaryExtractor.matchNumber",
+        ):
+            with self.subTest(obsolete_name=obsolete_name):
+                self.assertIsNone(
+                    boundary.find(f"stringProp[@name='{obsolete_name}']")
+                )
+
+    def test_backend_listener_uses_official_arguments_queue_and_sender(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        scenario["thread_groups"][0]["children"].append(
+            {"type": "backend_listener_influxdb", "queue_size": "4321"}
+        )
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        listener = root.find(".//BackendListener")
+        arguments = listener.find("elementProp[@name='arguments']")
+
+        self.assertIsNotNone(arguments)
+        self.assertIsNone(listener.find("elementProp[@name='Arguments']"))
+        self.assertEqual(listener.findtext("stringProp[@name='QUEUE_SIZE']"), "4321")
+        self.assertIsNone(listener.find("stringProp[@name='asyncQueueSize']"))
+        sender = arguments.find(
+            "collectionProp/elementProp[@name='influxdbMetricsSender']"
+        )
+        self.assertEqual(
+            sender.findtext("stringProp[@name='Argument.value']"),
+            "org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender",
+        )
+
+    def test_jsr223_cache_key_uses_canonical_string_property(self):
+        generator = load_generator()
+        scenario = nested_scenario()
+        scenario["thread_groups"][0]["children"].append(
+            {"type": "jsr223_preprocessor", "script": "vars.put('x', '1')"}
+        )
+
+        root = ET.fromstring(generator.build_jmx(scenario))
+        processor = root.find(".//JSR223PreProcessor")
+
+        self.assertEqual(processor.findtext("stringProp[@name='cacheKey']"), "true")
+        self.assertIsNone(processor.find("boolProp[@name='cacheKey']"))
+
+    def test_jmx_structure_uses_only_jmeter_563_component_contracts(self):
+        text = JMX_STRUCTURE_PATH.read_text(encoding="utf-8")
+        forbidden = (
+            'name="Assertion.test_strings"',
+            'name="JSONPostProcessor.default_values"',
+            'name="TransactionController.include_timers"',
+            'BoundaryExtractor.boundaries',
+            'BoundaryExtractor.rightBoundary',
+            'BoundaryExtractor.defaultValue',
+            'BoundaryExtractor.matchNumber',
+            'JSONPathJMESPathExtractor',
+            'JSONPathJMESPathAssertion',
+            'XPath2Extractor.refname',
+            'XPath2Assertion.xpath',
+            'ConstantThroughputTimerGui',
+            'ConstantThroughputTimer.throughput',
+            'ConstantThroughputTimer.calcMode',
+            'PreciseThroughputTimerGui',
+            'name="allowedTimers"',
+            '<Synchronizer ',
+            'name="CounterConfig.max"',
+            '<ActionController ',
+            'name="SampleTimeout.timeout"',
+            '<elementProp name="Arguments" elementType="Arguments"',
+            'name="asyncQueueSize"',
+            'RandomVariableConfigGui',
+            '<boolProp name="cacheKey"',
+        )
+        for value in forbidden:
+            with self.subTest(forbidden=value):
+                self.assertNotIn(value, text)
+
+        required = (
+            'name="Asserion.test_strings"',
+            'name="JSONPostProcessor.defaultValues"',
+            'name="TransactionController.includeTimers"',
+            'BoundaryExtractor.lboundary',
+            'BoundaryExtractor.rboundary',
+            'BoundaryExtractor.default',
+            'BoundaryExtractor.match_number',
+            '<JMESPathExtractor guiclass="JMESPathExtractorGui"',
+            '<JMESPathAssertion guiclass="JMESPathAssertionGui"',
+            'name="XPathExtractor2.refname"',
+            'name="XPath.xpath"',
+            '<SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer"',
+            'name="CounterConfig.end"',
+            '<TestAction guiclass="TestActionGui" testclass="TestAction"',
+            'name="InterruptTimer.timeout"',
+            '<elementProp name="arguments" elementType="Arguments"',
+            'name="QUEUE_SIZE"',
+            'Operator: 1=equal, 2=not equal, 3=greater than, 4=less than, 5=greater or equal, 6=less or equal',
+            'target: 0=current thread, 2=all threads',
+            'action: 0=stop, 1=pause, 2=stop now, 3=go to next thread loop iteration, 4=go to next current loop iteration, 5=break current loop',
+            'OnError.action: 0=continue, 1=stop thread, 2=stop test, 3=stop test now, 4=start next thread loop, 5=start next current loop iteration, 6=break current loop',
+            '<intProp name="calcMode">1</intProp>',
+            '<intProp name="throughputPeriod">60</intProp>',
+            '<longProp name="duration">3600</longProp>',
+            '<intProp name="batchSize">1</intProp>',
+            '<intProp name="batchThreadDelay">0</intProp>',
+            '<name>allowedThroughputSurplus</name>',
+            '<boolProp name="BoundaryExtractor.default_empty_value">false</boolProp>',
+        )
+        for value in required:
+            with self.subTest(required=value):
+                self.assertIn(value, text)
 
 
 if __name__ == "__main__":

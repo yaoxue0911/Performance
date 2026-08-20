@@ -21,6 +21,7 @@
 - 排除 SignalR、轮询、心跳或 status 检查、版本检查以及 CSS、JavaScript、图片、字体等静态资源。
 - 保留会初始化控件、dropdown、地址组件、tab 计数或流程状态的页面请求，例如具有实际初始化作用的 inbox 页面请求。
 - 保留表单提交、创建、更新、保存、唯一性检查和相关列表刷新等业务操作。
+- 保留打开case的步骤，即使用户单独提供了case_id。
 
 ## 提取压测参数
 
@@ -46,7 +47,7 @@
 
 1. 包含适用于当前场景的 Thread Group、业务 Loop Controller、Transaction Controller、Sampler、Extractor、Timer 和 Listener。
 2. 每个独立业务事务放在 Transaction Controller 中。
-3. 请求名称采用 `<METHOD> <实际路径>`，不加序号。所有请求名称、方法、路径、headers、params、body 和业务步骤必须来自捕获内容及用户批准的计划；不得复制示例文件中的业务值。
+3. 请求名称采用 `<METHOD> <实际路径> <用途>`，不加序号。所有请求名称、方法、路径、headers、params、body 和业务步骤必须来自捕获内容及用户批准的计划；不得复制示例文件中的业务值。
 4. Controller、Sampler 及其子元件按实际执行顺序排列。
 5. 只加入捕获内容和需求能够证明需要的组件，不为满足组件清单创建空节点。
 6. HTTP Request Sampler 均使用 `follow_redirects=true`

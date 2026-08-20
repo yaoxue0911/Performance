@@ -43,7 +43,12 @@ Readme.md
 ## 需要用户提供的内容
 1. 使用skill时需说明Fiddler请求文件位置，要做的性能测试内容（负载测试？高并发测试？并发数及持续时间？）
 例如：
-我要用/file/PA40_Incident report.saz做性能测试，使用$jmeter-loader-skills 技能分析。做负载测试，并发数为5，持续10分钟
-2. 
+- 我要用/file/PA40_Incident report.saz做性能测试，使用$jmeter-loader-skills 技能分析。做负载测试，并发数为5，持续10分钟
+- 使用$jmeter-loader-skills 把/file/PA40_Incident report.saz转换为jmeter脚本。并发数为1,case_id从csv文件中循环读取。
+2. [非必须] 可以简单描述脚本的操作流程以及其它信息，帮助AI分析。
+例如：
+- xx页面的参数使用抓包的静态值，xx参数从文件中读取。
+- 这个流程包含A和B操作，删除xx页面相关请求。
+3. 在第一阶段结束后，查看测试计划中的**断言**和需要用户确认的内容，按提示说明要添加的断言类型和位置，以及其它需要确认的信息。批准进入下一步。
 
 ###

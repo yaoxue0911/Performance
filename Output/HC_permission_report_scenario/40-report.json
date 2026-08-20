@@ -1,0 +1,11 @@
+{
+  "type": "transaction_controller",
+  "name": "Add investigation report",
+  "parent": true,
+  "include_timers": false,
+  "children": [
+    {"$include": "41-report-start.json"},
+    {"$include": "42-report-save.json"},
+    {"$include": "43-report-workflow.json"}
+  ]
+}

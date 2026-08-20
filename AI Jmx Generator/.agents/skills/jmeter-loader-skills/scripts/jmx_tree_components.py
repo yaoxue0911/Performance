@@ -22,6 +22,12 @@ class JMXComponentBuilder:
         return element
 
     @staticmethod
+    def _long_prop(name: str, value: object) -> ET.Element:
+        element = ET.Element("longProp", {"name": name})
+        element.text = str(value)
+        return element
+
+    @staticmethod
     def _string_prop(name: str, value: object) -> ET.Element:
         element = ET.Element("stringProp", {"name": name})
         element.text = str(value)
@@ -231,7 +237,7 @@ class JMXComponentBuilder:
         ):
             element.append(JMXComponentBuilder._string_prop(prop_name, value))
         element.append(
-            JMXComponentBuilder._bool_prop("HTTPSampler.embedded_url_re", False)
+            JMXComponentBuilder._string_prop("HTTPSampler.embedded_url_re", "")
         )
         return element
 
@@ -454,7 +460,7 @@ class JMXComponentBuilder:
         transaction_isolation: str = "DEFAULT",
     ) -> ET.Element:
         element = JMXComponentBuilder._named_element(
-            "JDBCDataSource", "DataSourcePanelGui", "JDBCDataSource", name
+            "JDBCDataSource", "TestBeanGUI", "JDBCDataSource", name
         )
         element.append(JMXComponentBuilder._bool_prop("autocommit", auto_commit))
         for prop_name, value in (
@@ -516,7 +522,7 @@ class JMXComponentBuilder:
             )
 
         element = JMXComponentBuilder._named_element(
-            "JDBCSampler", "JDBCTestElementGui", "JDBCSampler", name
+            "JDBCSampler", "TestBeanGUI", "JDBCSampler", name
         )
         for prop_name, value in (
             ("dataSource", pool_name),
@@ -567,7 +573,7 @@ class JMXComponentBuilder:
         )
         element.append(
             JMXComponentBuilder._bool_prop(
-                "TransactionController.include_timers", include_timers
+                "TransactionController.includeTimers", include_timers
             )
         )
         element.append(
@@ -681,10 +687,10 @@ class JMXComponentBuilder:
         timeout_ms: str = "0",
     ) -> ET.Element:
         element = JMXComponentBuilder._named_element(
-            "Synchronizer", "SynchronizerGui", "Synchronizer", "Synchronizing Timer"
+            "SyncTimer", "TestBeanGUI", "SyncTimer", "Synchronizing Timer"
         )
-        element.append(JMXComponentBuilder._string_prop("groupSize", group_size))
-        element.append(JMXComponentBuilder._string_prop("timeoutInMs", timeout_ms))
+        element.append(JMXComponentBuilder._int_prop("groupSize", group_size))
+        element.append(JMXComponentBuilder._long_prop("timeoutInMs", timeout_ms))
         return element
 
     @staticmethod
@@ -704,7 +710,7 @@ class JMXComponentBuilder:
             ("JSONPostProcessor.referenceNames", refname),
             ("JSONPostProcessor.jsonPathExprs", json_path),
             ("JSONPostProcessor.match_numbers", match_number),
-            ("JSONPostProcessor.default_values", default_value),
+            ("JSONPostProcessor.defaultValues", default_value),
         ):
             element.append(JMXComponentBuilder._string_prop(prop_name, value))
         return element
@@ -794,6 +800,7 @@ class JMXComponentBuilder:
         right_boundary: str,
         match_number: str = "1",
         default_value: str = "NOT_FOUND",
+        default_empty_value: bool = False,
         use_headers: str = "false",
     ) -> ET.Element:
         element = JMXComponentBuilder._named_element(
@@ -804,13 +811,18 @@ class JMXComponentBuilder:
         )
         for prop_name, value in (
             ("BoundaryExtractor.refname", refname),
-            ("BoundaryExtractor.boundaries", left_boundary),
-            ("BoundaryExtractor.rightBoundary", right_boundary),
-            ("BoundaryExtractor.defaultValue", default_value),
-            ("BoundaryExtractor.matchNumber", match_number),
+            ("BoundaryExtractor.lboundary", left_boundary),
+            ("BoundaryExtractor.rboundary", right_boundary),
+            ("BoundaryExtractor.default", default_value),
+            ("BoundaryExtractor.match_number", match_number),
             ("BoundaryExtractor.useHeaders", use_headers),
         ):
             element.append(JMXComponentBuilder._string_prop(prop_name, value))
+        element.append(
+            JMXComponentBuilder._bool_prop(
+                "BoundaryExtractor.default_empty_value", default_empty_value
+            )
+        )
         return element
 
     @staticmethod
@@ -848,7 +860,7 @@ class JMXComponentBuilder:
         element = JMXComponentBuilder._named_element(
             "ResponseAssertion", "AssertionGui", "ResponseAssertion", name
         )
-        collection = JMXComponentBuilder._collection_prop("Asserter.test_strings")
+        collection = JMXComponentBuilder._collection_prop("Asserion.test_strings")
         for index, pattern in enumerate(patterns or ["200"]):
             pattern_text = str(pattern)
             collection.append(
@@ -926,7 +938,9 @@ class JMXComponentBuilder:
         )
         element.append(JMXComponentBuilder._string_prop("parameters", ""))
         element.append(JMXComponentBuilder._string_prop("filename", ""))
-        element.append(JMXComponentBuilder._bool_prop("cacheKey", cache_key))
+        element.append(
+            JMXComponentBuilder._string_prop("cacheKey", str(cache_key).lower())
+        )
         element.append(JMXComponentBuilder._string_prop("script", script))
         return element
 
@@ -1222,7 +1236,7 @@ class JMXComponentBuilder:
         arguments = ET.Element(
             "elementProp",
             {
-                "name": "Arguments",
+                "name": "arguments",
                 "elementType": "Arguments",
                 "guiclass": "ArgumentsPanel",
                 "testclass": "Arguments",
@@ -1231,6 +1245,10 @@ class JMXComponentBuilder:
         )
         collection = JMXComponentBuilder._collection_prop("Arguments.arguments")
         for key, value in (
+            (
+                "influxdbMetricsSender",
+                "org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender",
+            ),
             ("influxdbUrl", influxdb_url),
             ("influxdbToken", influxdb_token),
             ("application", application),
@@ -1245,10 +1263,11 @@ class JMXComponentBuilder:
             argument.append(
                 JMXComponentBuilder._string_prop("Argument.value", value)
             )
+            argument.append(JMXComponentBuilder._string_prop("Argument.metadata", "="))
             collection.append(argument)
         arguments.append(collection)
         element.append(arguments)
         element.append(
-            JMXComponentBuilder._string_prop("asyncQueueSize", queue_size)
+            JMXComponentBuilder._string_prop("QUEUE_SIZE", queue_size)
         )
         return element

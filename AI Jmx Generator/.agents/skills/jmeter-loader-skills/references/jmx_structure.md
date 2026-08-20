@@ -197,7 +197,7 @@ JMX 文件的基本结构如下：
   <stringProp name="HTTPSampler.contentEncoding"></stringProp>
   <stringProp name="HTTPSampler.path">${__P(base_path,/)}</stringProp>
   <stringProp name="HTTPSampler.concurrentPool">6</stringProp>
-  <boolProp name="HTTPSampler.embedded_url_re">false</boolProp>
+  <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
 </ConfigTestElement>
 ```
 
@@ -272,7 +272,7 @@ JMX 文件的基本结构如下：
 
 ```xml
 <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="响应断言" enabled="true">
-  <collectionProp name="Assertion.test_strings">
+  <collectionProp name="Asserion.test_strings">
     <stringProp name="49586">200</stringProp>
   </collectionProp>
   <stringProp name="Assertion.custom_message"></stringProp>
@@ -306,7 +306,7 @@ JMX 文件的基本结构如下：
   <stringProp name="JSONPostProcessor.referenceNames">auth_token</stringProp>
   <stringProp name="JSONPostProcessor.jsonPathExprs">$.data.token</stringProp>
   <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
-  <stringProp name="JSONPostProcessor.default_values">NOT_FOUND</stringProp>
+  <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
 </JSONPostProcessor>
 ```
 
@@ -458,7 +458,7 @@ jmeter -n -t test.jmx -l result.jtl -Jconcurrency=200 -Jduration=600
 ### 8.4 Transaction Controller
 ```xml
 <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Transaction Controller" enabled="true">
-  <boolProp name="TransactionController.include_timers">false</boolProp>
+  <boolProp name="TransactionController.includeTimers">false</boolProp>
   <boolProp name="TransactionController.parent">true</boolProp>
 </TransactionController>
 ```
@@ -518,10 +518,11 @@ jmeter -n -t test.jmx -l result.jtl -Jconcurrency=200 -Jduration=600
 ```xml
 <BoundaryExtractor guiclass="BoundaryExtractorGui" testclass="BoundaryExtractor" testname="Boundary Extractor" enabled="true">
   <stringProp name="BoundaryExtractor.refname">token</stringProp>
-  <stringProp name="BoundaryExtractor.boundaries">"token":"</stringProp>
-  <stringProp name="BoundaryExtractor.rightBoundary">"</stringProp>
-  <stringProp name="BoundaryExtractor.defaultValue">NOT_FOUND</stringProp>
-  <stringProp name="BoundaryExtractor.matchNumber">1</stringProp>
+  <stringProp name="BoundaryExtractor.lboundary">"token":"</stringProp>
+  <stringProp name="BoundaryExtractor.rboundary">"</stringProp>
+  <stringProp name="BoundaryExtractor.default">NOT_FOUND</stringProp>
+  <stringProp name="BoundaryExtractor.match_number">1</stringProp>
+  <boolProp name="BoundaryExtractor.default_empty_value">false</boolProp>
   <stringProp name="BoundaryExtractor.useHeaders">false</stringProp>
 </BoundaryExtractor>
 ```
@@ -541,23 +542,23 @@ jmeter -n -t test.jmx -l result.jtl -Jconcurrency=200 -Jduration=600
 ### 9.3 XPath2 Extractor
 ```xml
 <XPath2Extractor guiclass="XPath2ExtractorGui" testclass="XPath2Extractor" testname="XPath2 Extractor" enabled="true">
-  <stringProp name="XPath2Extractor.refname">value</stringProp>
-  <stringProp name="XPath2Extractor.xpathQuery">//root/element/@attr</stringProp>
-  <stringProp name="XPath2Extractor.default">NOT_FOUND</stringProp>
-  <stringProp name="XPath2Extractor.matchNumber">1</stringProp>
-  <boolProp name="XPath2Extractor.fragment">false</boolProp>
-  <stringProp name="XPath2Extractor.namespaces"></stringProp>
+  <stringProp name="XPathExtractor2.refname">value</stringProp>
+  <stringProp name="XPathExtractor2.xpathQuery">//root/element/@attr</stringProp>
+  <stringProp name="XPathExtractor2.default">NOT_FOUND</stringProp>
+  <stringProp name="XPathExtractor2.matchNumber">1</stringProp>
+  <boolProp name="XPathExtractor2.fragment">false</boolProp>
+  <stringProp name="XPathExtractor2.namespaces"></stringProp>
 </XPath2Extractor>
 ```
 
 ### 9.4 JSON JMESPath Extractor
 ```xml
-<JSONPathJMESPathExtractor guiclass="JSONPathJMESPathExtractorGui" testclass="JSONPathJMESPathExtractor" testname="JMESPath Extractor" enabled="true">
-  <stringProp name="JSONPathJMESPathExtractor.refname">items</stringProp>
-  <stringProp name="JSONPathJMESPathExtractor.expression">data.items[*].name</stringProp>
-  <stringProp name="JSONPathJMESPathExtractor.default">NOT_FOUND</stringProp>
-  <stringProp name="JSONPathJMESPathExtractor.matchNumber">1</stringProp>
-</JSONPathJMESPathExtractor>
+<JMESPathExtractor guiclass="JMESPathExtractorGui" testclass="JMESPathExtractor" testname="JMESPath Extractor" enabled="true">
+  <stringProp name="JMESExtractor.referenceName">items</stringProp>
+  <stringProp name="JMESExtractor.jmesPathExpr">data.items[*].name</stringProp>
+  <stringProp name="JMESExtractor.defaultValue">NOT_FOUND</stringProp>
+  <stringProp name="JMESExtractor.matchNumber">1</stringProp>
+</JMESPathExtractor>
 ```
 
 ---
@@ -578,22 +579,25 @@ jmeter -n -t test.jmx -l result.jtl -Jconcurrency=200 -Jduration=600
   <intProp name="SizeAssertion.operator">2</intProp>
 </SizeAssertion>
 ```
-Operator: 1=equal, 2=greater than, 3=less than, 4=greater or equal, 5=less or equal, 6=not equal
+Operator: 1=equal, 2=not equal, 3=greater than, 4=less than, 5=greater or equal, 6=less or equal
 
 ### 10.3 JSON JMESPath Assertion
 ```xml
-<JSONPathJMESPathAssertion guiclass="JSONPathJMESPathAssertionGui" testclass="JSONPathJMESPathAssertion" testname="JMESPath Assertion" enabled="true">
-  <stringProp name="JSONPathJMESPathAssertion.expression">data.status</stringProp>
-  <stringProp name="JSONPathJMESPathAssertion.expectedValue">success</stringProp>
-  <boolProp name="JSONPathJMESPathAssertion.isRegex">false</boolProp>
-</JSONPathJMESPathAssertion>
+<JMESPathAssertion guiclass="JMESPathAssertionGui" testclass="JMESPathAssertion" testname="JMESPath Assertion" enabled="true">
+  <stringProp name="JMES_PATH">data.status</stringProp>
+  <stringProp name="EXPECTED_VALUE">success</stringProp>
+  <boolProp name="JSONVALIDATION">true</boolProp>
+  <boolProp name="EXPECT_NULL">false</boolProp>
+  <boolProp name="INVERT">false</boolProp>
+  <boolProp name="ISREGEX">false</boolProp>
+</JMESPathAssertion>
 ```
 
 ### 10.4 XPath2 Assertion
 ```xml
 <XPath2Assertion guiclass="XPath2AssertionGui" testclass="XPath2Assertion" testname="XPath2 Assertion" enabled="true">
-  <stringProp name="XPath2Assertion.xpath">//root/status[text()='OK']</stringProp>
-  <stringProp name="XPath2Assertion.namespaces"></stringProp>
+  <stringProp name="XPath.xpath">//root/status[text()='OK']</stringProp>
+  <stringProp name="XPath.namespaces"></stringProp>
 </XPath2Assertion>
 ```
 
@@ -618,30 +622,45 @@ Operator: 1=equal, 2=greater than, 3=less than, 4=greater or equal, 5=less or eq
 
 ### 11.2 Constant Throughput Timer
 ```xml
-<ConstantThroughputTimer guiclass="ConstantThroughputTimerGui" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer" enabled="true">
-  <stringProp name="ConstantThroughputTimer.throughput">60.0</stringProp>
-  <intProp name="ConstantThroughputTimer.calcMode">1</intProp>
+<ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer" enabled="true">
+  <intProp name="calcMode">1</intProp>
+  <doubleProp>
+    <name>throughput</name>
+    <value>60.0</value>
+    <savedValue>0.0</savedValue>
+  </doubleProp>
 </ConstantThroughputTimer>
 ```
-calcMode: 0=this thread only, 1=all active threads, 2=all active threads in current thread group, 3=all active threads (shared)
+calcMode: 0=this thread only, 1=all active threads, 2=all active threads in current thread group, 3=all active threads (shared), 4=all active threads in current thread group (shared)
 
 ### 11.3 Precise Throughput Timer
 ```xml
-<PreciseThroughputTimer guiclass="PreciseThroughputTimerGui" testclass="PreciseThroughputTimer" testname="Precise Throughput Timer" enabled="true">
-  <stringProp name="throughput">60.0</stringProp>
-  <stringProp name="throughputPeriod">60</stringProp>
-  <intProp name="exactLimit">100</intProp>
-  <intProp name="allowedTimers">5</intProp>
-  <stringProp name="randomSeed">0</stringProp>
+<PreciseThroughputTimer guiclass="TestBeanGUI" testclass="PreciseThroughputTimer" testname="Precise Throughput Timer" enabled="true">
+  <doubleProp>
+    <name>throughput</name>
+    <value>60.0</value>
+    <savedValue>0.0</savedValue>
+  </doubleProp>
+  <intProp name="throughputPeriod">60</intProp>
+  <longProp name="duration">3600</longProp>
+  <intProp name="batchSize">1</intProp>
+  <intProp name="batchThreadDelay">0</intProp>
+  <intProp name="exactLimit">10000</intProp>
+  <doubleProp>
+    <name>allowedThroughputSurplus</name>
+    <value>1.0</value>
+    <savedValue>0.0</savedValue>
+  </doubleProp>
+  <longProp name="randomSeed">0</longProp>
 </PreciseThroughputTimer>
 ```
 
 ### 11.4 Synchronizing Timer
 ```xml
-<Synchronizer guiclass="SynchronizerGui" testclass="Synchronizer" testname="Synchronizing Timer" enabled="true">
-  <stringProp name="groupSize">10</stringProp>
-  <stringProp name="timeoutInMs">0</stringProp>
-</Synchronizer>
+<SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="Synchronizing Timer" enabled="true">
+  <intProp name="groupSize">10</intProp>
+  <longProp name="timeoutInMs">0</longProp>
+</SyncTimer>
 ```
 
 ### 11.5 Poisson Random Timer
@@ -662,7 +681,7 @@ calcMode: 0=this thread only, 1=all active threads, 2=all active threads in curr
   <stringProp name="scriptLanguage">groovy</stringProp>
   <stringProp name="parameters"></stringProp>
   <stringProp name="filename"></stringProp>
-  <boolProp name="cacheKey">true</boolProp>
+  <stringProp name="cacheKey">true</stringProp>
   <stringProp name="script">def response = "Hello from Groovy";
 SampleResult.setResponseData(response, "UTF-8");
 SampleResult.setSuccessful(true);</stringProp>
@@ -675,7 +694,7 @@ SampleResult.setSuccessful(true);</stringProp>
   <stringProp name="scriptLanguage">groovy</stringProp>
   <stringProp name="parameters"></stringProp>
   <stringProp name="filename"></stringProp>
-  <boolProp name="cacheKey">true</boolProp>
+  <stringProp name="cacheKey">true</stringProp>
   <stringProp name="script">vars.put("timestamp", String.valueOf(System.currentTimeMillis()));</stringProp>
 </JSR223PreProcessor>
 ```
@@ -686,7 +705,7 @@ SampleResult.setSuccessful(true);</stringProp>
   <stringProp name="scriptLanguage">groovy</stringProp>
   <stringProp name="parameters"></stringProp>
   <stringProp name="filename"></stringProp>
-  <boolProp name="cacheKey">true</boolProp>
+  <stringProp name="cacheKey">true</stringProp>
   <stringProp name="script">def response = prev.getResponseDataAsString();
 log.info("Response length: " + response.length());</stringProp>
 </JSR223PostProcessor>
@@ -698,7 +717,7 @@ log.info("Response length: " + response.length());</stringProp>
   <stringProp name="scriptLanguage">groovy</stringProp>
   <stringProp name="parameters"></stringProp>
   <stringProp name="filename"></stringProp>
-  <boolProp name="cacheKey">true</boolProp>
+  <stringProp name="cacheKey">true</stringProp>
   <stringProp name="script">if (!prev.isSuccessful()) {
     AssertionResult.setFailure(true);
     AssertionResult.setFailureMessage("Request failed: " + prev.getResponseCode());
@@ -712,7 +731,7 @@ log.info("Response length: " + response.length());</stringProp>
   <stringProp name="scriptLanguage">groovy</stringProp>
   <stringProp name="parameters"></stringProp>
   <stringProp name="filename"></stringProp>
-  <boolProp name="cacheKey">true</boolProp>
+  <stringProp name="cacheKey">true</stringProp>
   <stringProp name="script">return (int)(Math.random() * 2000) + 1000;</stringProp>
 </JSR223Timer>
 ```
@@ -723,7 +742,7 @@ log.info("Response length: " + response.length());</stringProp>
   <stringProp name="scriptLanguage">groovy</stringProp>
   <stringProp name="parameters"></stringProp>
   <stringProp name="filename"></stringProp>
-  <boolProp name="cacheKey">true</boolProp>
+  <stringProp name="cacheKey">true</stringProp>
   <stringProp name="script">if (!sampleEvent.getResult().isSuccessful()) {
     log.error("Failed: " + sampleEvent.getResult().getSampleLabel());
 }</stringProp>
@@ -776,8 +795,12 @@ log.info("Response length: " + response.length());</stringProp>
 ```xml
 <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Backend Listener" enabled="true">
   <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
-  <elementProp name="Arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
+  <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
     <collectionProp name="Arguments.arguments">
+      <elementProp name="influxdbMetricsSender" elementType="Argument">
+        <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
+        <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
+      </elementProp>
       <elementProp name="influxdbUrl" elementType="Argument">
         <stringProp name="Argument.name">influxdbUrl</stringProp>
         <stringProp name="Argument.value">http://${__P(influxdb_host,localhost)}:${__P(influxdb_port,8086)}${__P(influxdb_path,/api/v2/write)}</stringProp>
@@ -812,7 +835,7 @@ log.info("Response length: " + response.length());</stringProp>
       </elementProp>
     </collectionProp>
   </elementProp>
-  <stringProp name="asyncQueueSize">5000</stringProp>
+  <stringProp name="QUEUE_SIZE">5000</stringProp>
 </BackendListener>
 ```
 
@@ -820,7 +843,7 @@ log.info("Response length: " + response.length());</stringProp>
 ```xml
 <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Backend Listener" enabled="true">
   <stringProp name="classname">org.apache.jmeter.visualizers.backend.graphite.GraphiteBackendListenerClient</stringProp>
-  <elementProp name="Arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
+  <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
     <collectionProp name="Arguments.arguments">
       <elementProp name="graphiteMetricsSender" elementType="Argument">
         <stringProp name="Argument.name">graphiteMetricsSender</stringProp>
@@ -846,13 +869,17 @@ log.info("Response length: " + response.length());</stringProp>
         <stringProp name="Argument.name">samplersList</stringProp>
         <stringProp name="Argument.value">.*</stringProp>
       </elementProp>
+      <elementProp name="useRegexpForSamplersList" elementType="Argument">
+        <stringProp name="Argument.name">useRegexpForSamplersList</stringProp>
+        <stringProp name="Argument.value">true</stringProp>
+      </elementProp>
       <elementProp name="percentiles" elementType="Argument">
         <stringProp name="Argument.name">percentiles</stringProp>
         <stringProp name="Argument.value">50;90;95;99</stringProp>
       </elementProp>
     </collectionProp>
   </elementProp>
-  <stringProp name="asyncQueueSize">5000</stringProp>
+  <stringProp name="QUEUE_SIZE">5000</stringProp>
 </BackendListener>
 ```
 
@@ -913,7 +940,7 @@ log.info("Response length: " + response.length());</stringProp>
 <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Counter" enabled="true">
   <stringProp name="CounterConfig.start">1</stringProp>
   <stringProp name="CounterConfig.incr">1</stringProp>
-  <stringProp name="CounterConfig.max">9999</stringProp>
+  <stringProp name="CounterConfig.end">9999</stringProp>
   <stringProp name="CounterConfig.name">counter</stringProp>
   <stringProp name="CounterConfig.format"></stringProp>
   <boolProp name="CounterConfig.per_user">true</boolProp>
@@ -923,7 +950,7 @@ log.info("Response length: " + response.length());</stringProp>
 
 ### 15.6 Random Variable
 ```xml
-<RandomVariableConfig guiclass="RandomVariableConfigGui" testclass="RandomVariableConfig" testname="Random Variable" enabled="true">
+<RandomVariableConfig guiclass="TestBeanGUI" testclass="RandomVariableConfig" testname="Random Variable" enabled="true">
   <stringProp name="minimumValue">1</stringProp>
   <stringProp name="maximumValue">1000</stringProp>
   <stringProp name="variableName">random_id</stringProp>
@@ -948,14 +975,14 @@ log.info("Response length: " + response.length());</stringProp>
 
 ### 16.2 Flow Control Action
 ```xml
-<ActionController guiclass="ActionControllerGui" testclass="ActionController" testname="Flow Control Action" enabled="true">
-  <intProp name="ActionController.target">0</intProp>
-  <intProp name="ActionController.action">1</intProp>
-  <stringProp name="ActionController.duration">1000</stringProp>
-</ActionController>
+<TestAction guiclass="TestActionGui" testclass="TestAction" testname="Flow Control Action" enabled="true">
+  <intProp name="ActionProcessor.target">0</intProp>
+  <intProp name="ActionProcessor.action">1</intProp>
+  <stringProp name="ActionProcessor.duration">1000</stringProp>
+</TestAction>
 ```
-target: 0=current thread, 1=all threads
-action: 0=pause, 1=stop, 2=stop now, 3=go to next loop iteration, 4=break current loop
+target: 0=current thread, 2=all threads
+action: 0=stop, 1=pause, 2=stop now, 3=go to next thread loop iteration, 4=go to next current loop iteration, 5=break current loop
 
 ### 16.3 Test Fragment
 ```xml
@@ -968,11 +995,11 @@ action: 0=pause, 1=stop, 2=stop now, 3=go to next loop iteration, 4=break curren
   <intProp name="OnError.action">1</intProp>
 </ResultAction>
 ```
-OnError.action: 0=continue, 1=start next thread loop, 2=stop thread, 3=stop test, 4=stop test now
+OnError.action: 0=continue, 1=stop thread, 2=stop test, 3=stop test now, 4=start next thread loop, 5=start next current loop iteration, 6=break current loop
 
 ### 16.5 Sample Timeout
 ```xml
 <SampleTimeout guiclass="SampleTimeoutGui" testclass="SampleTimeout" testname="Sample Timeout" enabled="true">
-  <stringProp name="SampleTimeout.timeout">5000</stringProp>
+  <stringProp name="InterruptTimer.timeout">5000</stringProp>
 </SampleTimeout>
 ```

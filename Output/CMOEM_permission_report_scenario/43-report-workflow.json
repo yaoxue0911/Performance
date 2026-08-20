@@ -1,0 +1,86 @@
+[
+  {
+    "type": "http_sampler",
+    "name": "GET /InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+    "method": "GET",
+    "path": "/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}",
+    "follow_redirects": true,
+    "children": [
+      {"type": "header_manager", "name": "Workflow page headers", "headers": [{"name": "Referer", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&MPID=intakeFormMiddelPage&case_id=${case_id}&template_id=588&report_id=${report_id}&rnd=${intake_page_rnd}"}]},
+      {"type": "css_extractor", "name": "Workflow VIEWSTATE", "refname": "workflow_viewstate", "expression": "input[name='__VIEWSTATE']", "attribute": "value", "match_number": "1", "default_value": "NOT_FOUND", "scope": "parent"},
+      {"type": "css_extractor", "name": "Workflow VIEWSTATEGENERATOR", "refname": "workflow_viewstate_generator", "expression": "input[name='__VIEWSTATEGENERATOR']", "attribute": "value", "match_number": "1", "default_value": "NOT_FOUND", "scope": "parent"}
+    ]
+  },
+  {
+    "type": "http_sampler",
+    "name": "POST /InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+    "method": "POST",
+    "path": "/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}",
+    "follow_redirects": true,
+    "params": [
+      {"name": "ctl00$ContentPlaceHolder1$ScriptManager1", "value": "ctl00$ContentPlaceHolder1$UpdatePanel1|ctl00$ContentPlaceHolder1$ddlReportNextStep", "always_encode": true},
+      {"name": "__EVENTTARGET", "value": "ctl00$ContentPlaceHolder1$ddlReportNextStep", "always_encode": true},
+      {"name": "__EVENTARGUMENT", "value": "", "always_encode": true},
+      {"name": "__LASTFOCUS", "value": "", "always_encode": true},
+      {"name": "__VIEWSTATE", "value": "${workflow_viewstate}", "always_encode": true},
+      {"name": "__VIEWSTATEGENERATOR", "value": "${workflow_viewstate_generator}", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$ddlReportNextStep", "value": "ROUTE1", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$nbReviewNote", "value": "", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidRouteType", "value": "", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidReviewNote", "value": "", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidFlag", "value": "0", "always_encode": true},
+      {"name": "__ASYNCPOST", "value": "true", "always_encode": true}
+    ],
+    "children": [
+      {"type": "header_manager", "name": "Workflow selection headers", "headers": [{"name": "X-Requested-With", "value": "XMLHttpRequest"}, {"name": "Content-Type", "value": "application/x-www-form-urlencoded; charset=UTF-8"}, {"name": "Origin", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"}, {"name": "Referer", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}"}]},
+      {"type": "boundary_extractor", "name": "Extract updated workflow VIEWSTATE", "refname": "workflow_updated_viewstate", "left_boundary": "hiddenField|__VIEWSTATE|", "right_boundary": "|8|hiddenField|__VIEWSTATEGENERATOR|", "match_number": "1", "default_value": "NOT_FOUND", "use_headers": "false"}
+    ]
+  },
+  {
+    "type": "http_sampler",
+    "name": "POST /InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+    "method": "POST",
+    "path": "/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+    "follow_redirects": true,
+    "params": [
+      {"name": "action", "value": "clear", "always_encode": true},
+      {"name": "report_ids", "value": "${report_id}", "always_encode": true}
+    ],
+    "children": [
+      {"type": "header_manager", "name": "Workflow clear headers", "headers": [{"name": "X-Requested-With", "value": "XMLHttpRequest"}, {"name": "Content-Type", "value": "application/x-www-form-urlencoded; charset=UTF-8"}, {"name": "Origin", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"}, {"name": "Referer", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}"}]}
+    ]
+  },
+  {
+    "type": "http_sampler",
+    "name": "POST /InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx",
+    "method": "POST",
+    "path": "/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}",
+    "follow_redirects": true,
+    "params": [
+      {"name": "ctl00$ContentPlaceHolder1$ddlReportNextStep", "value": "ROUTE1", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$nbReviewNote", "value": "", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$btnSave", "value": "Save", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidRouteType", "value": "", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidReviewNote", "value": "", "always_encode": true},
+      {"name": "ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidFlag", "value": "0", "always_encode": true},
+      {"name": "__EVENTTARGET", "value": "", "always_encode": true},
+      {"name": "__EVENTARGUMENT", "value": "", "always_encode": true},
+      {"name": "__LASTFOCUS", "value": "", "always_encode": true},
+      {"name": "__VIEWSTATE", "value": "${workflow_updated_viewstate}", "always_encode": true},
+      {"name": "__VIEWSTATEGENERATOR", "value": "${workflow_viewstate_generator}", "always_encode": true}
+    ],
+    "children": [
+      {"type": "header_manager", "name": "Workflow save headers", "headers": [{"name": "Content-Type", "value": "application/x-www-form-urlencoded"}, {"name": "Origin", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"}, {"name": "Referer", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&report_ids=${report_id}&rnd=${workflow_rnd_1}&rnd=${workflow_rnd_2}"}]}
+    ]
+  },
+  {
+    "type": "http_sampler",
+    "name": "GET /InfoRMS30/Aspsoft/Dispatcher.aspx",
+    "method": "GET",
+    "path": "/InfoRMS30/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&case_id=${case_id}&division_id=3",
+    "follow_redirects": true,
+    "children": [
+      {"type": "header_manager", "name": "Return to report list headers", "headers": [{"name": "Referer", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&MPID=intakeFormMiddelPage&case_id=${case_id}&template_id=588&report_id=${report_id}&rnd=${intake_page_rnd}"}]}
+    ]
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "test_plan": {
+    "name": "HC Permission and Investigation Report"
+  },
+  "thread_groups": [
+    {
+      "name": "HC Permission and Report Stable Load",
+      "threads": "${__P(concurrency,1)}",
+      "rampup": "${__P(rampup,1)}",
+      "duration": "${__P(duration,600)}",
+      "loops": "-1",
+      "on_sample_error": "continue",
+      "same_user": true,
+      "children": [
+        {"$include": "10-auth.json"},
+        {"$include": "20-business-loop.json"},
+        {
+          "type": "view_results_tree",
+          "name": "View Results Tree",
+          "filename": "${__P(debug_result_file,HC_permission_report_debug.jtl)}"
+        },
+        {
+          "type": "simple_data_writer",
+          "name": "Simple Data Writer",
+          "filename": "${__P(load_result_file,HC_permission_report_load.jtl)}"
+        }
+      ]
+    }
+  ]
+}

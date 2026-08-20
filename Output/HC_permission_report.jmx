@@ -1,0 +1,2110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="HC Permission and Investigation Report" enabled="true">
+      <stringProp name="TestPlan.comments" />
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments" />
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath" />
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="HC Permission and Report Stable Load" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">true</boolProp>
+          <stringProp name="LoopController.loops">-1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(concurrency,1)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,1)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,600)}</stringProp>
+        <stringProp name="ThreadGroup.delay" />
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+            <collectionProp name="Arguments.arguments" />
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(target_host,hcrms.csitech.com)}</stringProp>
+          <stringProp name="HTTPSampler.port">${__P(target_port,443)}</stringProp>
+          <stringProp name="HTTPSampler.protocol">${__P(protocol,https)}</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">${__P(content_encoding,UTF-8)}</stringProp>
+          <stringProp name="HTTPSampler.path">${__P(base_path,/)}</stringProp>
+          <stringProp name="HTTPSampler.concurrentPool">6</stringProp>
+          <boolProp name="HTTPSampler.embedded_url_re">false</boolProp>
+        </ConfigTestElement>
+        <hashTree />
+        <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager" enabled="true">
+          <collectionProp name="CookieManager.cookies" />
+          <boolProp name="CookieManager.clearEachIteration">false</boolProp>
+          <boolProp name="CookieManager.controlledByThreadGroup">true</boolProp>
+        </CookieManager>
+        <hashTree />
+        <CacheManager guiclass="CacheManagerGui" testclass="CacheManager" testname="HTTP Cache Manager" enabled="true">
+          <boolProp name="clearEachIteration">false</boolProp>
+          <boolProp name="useExpires">true</boolProp>
+          <stringProp name="maxCacheSize">5000</stringProp>
+        </CacheManager>
+        <hashTree />
+        <OnceOnlyController guiclass="OnceOnlyControllerGui" testclass="OnceOnlyController" testname="Login once" enabled="true" />
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/Login.aspx" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+              <collectionProp name="Arguments.arguments" />
+            </elementProp>
+            <stringProp name="HTTPSampler.domain" />
+            <stringProp name="HTTPSampler.port" />
+            <stringProp name="HTTPSampler.protocol" />
+            <stringProp name="HTTPSampler.contentEncoding" />
+            <stringProp name="HTTPSampler.path">/RMS/Login.aspx</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re" />
+            <stringProp name="HTTPSampler.connect_timeout" />
+            <stringProp name="HTTPSampler.response_timeout" />
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Login VIEWSTATE" enabled="true">
+              <stringProp name="HtmlExtractor.refname">login_viewstate</stringProp>
+              <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATE']</stringProp>
+              <stringProp name="HtmlExtractor.attribute">value</stringProp>
+              <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+              <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+              <stringProp name="HtmlExtractor.match_number">1</stringProp>
+              <stringProp name="HtmlExtractor.extractor_impl" />
+              <stringProp name="Sample.scope">parent</stringProp>
+            </HtmlExtractor>
+            <hashTree />
+            <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Login VIEWSTATEGENERATOR" enabled="true">
+              <stringProp name="HtmlExtractor.refname">login_viewstate_generator</stringProp>
+              <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATEGENERATOR']</stringProp>
+              <stringProp name="HtmlExtractor.attribute">value</stringProp>
+              <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+              <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+              <stringProp name="HtmlExtractor.match_number">1</stringProp>
+              <stringProp name="HtmlExtractor.extractor_impl" />
+              <stringProp name="Sample.scope">parent</stringProp>
+            </HtmlExtractor>
+            <hashTree />
+          </hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/Login.aspx" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="__VIEWSTATE" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value">${login_viewstate}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">__VIEWSTATE</stringProp>
+                </elementProp>
+                <elementProp name="__VIEWSTATEGENERATOR" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value">${login_viewstate_generator}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">__VIEWSTATEGENERATOR</stringProp>
+                </elementProp>
+                <elementProp name="txtUserName" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value">sa01</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">txtUserName</stringProp>
+                </elementProp>
+                <elementProp name="txtPassword" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value">QyQhMTk5MCFuZjAkaGFyMzIwMjY=</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">txtPassword</stringProp>
+                </elementProp>
+                <elementProp name="btnLogin" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value">Login</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">btnLogin</stringProp>
+                </elementProp>
+                <elementProp name="hdnDebugConn" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value" />
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">hdnDebugConn</stringProp>
+                </elementProp>
+                <elementProp name="hdnDeviceInfo" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value" />
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">hdnDeviceInfo</stringProp>
+                </elementProp>
+                <elementProp name="usbKeyValue" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value" />
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">usbKeyValue</stringProp>
+                </elementProp>
+                <elementProp name="computerNameValue" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value" />
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">computerNameValue</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.domain" />
+            <stringProp name="HTTPSampler.port" />
+            <stringProp name="HTTPSampler.protocol" />
+            <stringProp name="HTTPSampler.contentEncoding" />
+            <stringProp name="HTTPSampler.path">/RMS/Login.aspx</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re" />
+            <stringProp name="HTTPSampler.connect_timeout" />
+            <stringProp name="HTTPSampler.response_timeout" />
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Login headers" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Content-Type</stringProp>
+                  <stringProp name="Header.value">application/x-www-form-urlencoded</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Origin</stringProp>
+                  <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Referer</stringProp>
+                  <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Login.aspx</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree />
+            <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Disclaimer VIEWSTATE" enabled="true">
+              <stringProp name="HtmlExtractor.refname">disclaimer_viewstate</stringProp>
+              <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATE']</stringProp>
+              <stringProp name="HtmlExtractor.attribute">value</stringProp>
+              <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+              <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+              <stringProp name="HtmlExtractor.match_number">1</stringProp>
+              <stringProp name="HtmlExtractor.extractor_impl" />
+              <stringProp name="Sample.scope">all</stringProp>
+            </HtmlExtractor>
+            <hashTree />
+            <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Disclaimer VIEWSTATEGENERATOR" enabled="true">
+              <stringProp name="HtmlExtractor.refname">disclaimer_viewstate_generator</stringProp>
+              <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATEGENERATOR']</stringProp>
+              <stringProp name="HtmlExtractor.attribute">value</stringProp>
+              <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+              <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+              <stringProp name="HtmlExtractor.match_number">1</stringProp>
+              <stringProp name="HtmlExtractor.extractor_impl" />
+              <stringProp name="Sample.scope">all</stringProp>
+            </HtmlExtractor>
+            <hashTree />
+            <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Disclaimer EVENTVALIDATION" enabled="true">
+              <stringProp name="HtmlExtractor.refname">disclaimer_eventvalidation</stringProp>
+              <stringProp name="HtmlExtractor.expr">input[name='__EVENTVALIDATION']</stringProp>
+              <stringProp name="HtmlExtractor.attribute">value</stringProp>
+              <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+              <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+              <stringProp name="HtmlExtractor.match_number">1</stringProp>
+              <stringProp name="HtmlExtractor.extractor_impl" />
+              <stringProp name="Sample.scope">all</stringProp>
+            </HtmlExtractor>
+            <hashTree />
+          </hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/DisclaimerRedirect.aspx" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="__VIEWSTATE" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value">${disclaimer_viewstate}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">__VIEWSTATE</stringProp>
+                </elementProp>
+                <elementProp name="__VIEWSTATEGENERATOR" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value">${disclaimer_viewstate_generator}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">__VIEWSTATEGENERATOR</stringProp>
+                </elementProp>
+                <elementProp name="__EVENTVALIDATION" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value">${disclaimer_eventvalidation}</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">__EVENTVALIDATION</stringProp>
+                </elementProp>
+                <elementProp name="btnJump" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                  <stringProp name="Argument.value" />
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">btnJump</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.domain" />
+            <stringProp name="HTTPSampler.port" />
+            <stringProp name="HTTPSampler.protocol" />
+            <stringProp name="HTTPSampler.contentEncoding" />
+            <stringProp name="HTTPSampler.path">/RMS/DisclaimerRedirect.aspx?division_id=3</stringProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re" />
+            <stringProp name="HTTPSampler.connect_timeout" />
+            <stringProp name="HTTPSampler.response_timeout" />
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Disclaimer headers" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Content-Type</stringProp>
+                  <stringProp name="Header.value">application/x-www-form-urlencoded</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Origin</stringProp>
+                  <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Referer</stringProp>
+                  <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Index.aspx</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree />
+          </hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/Home.aspx" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+              <collectionProp name="Arguments.arguments" />
+            </elementProp>
+            <stringProp name="HTTPSampler.domain" />
+            <stringProp name="HTTPSampler.port" />
+            <stringProp name="HTTPSampler.protocol" />
+            <stringProp name="HTTPSampler.contentEncoding" />
+            <stringProp name="HTTPSampler.path">/RMS/Home.aspx?division_id=3</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re" />
+            <stringProp name="HTTPSampler.connect_timeout" />
+            <stringProp name="HTTPSampler.response_timeout" />
+          </HTTPSamplerProxy>
+          <hashTree />
+        </hashTree>
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Case permission and report loop" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">-1</stringProp>
+        </LoopController>
+        <hashTree>
+          <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Case IDs" enabled="true">
+            <stringProp name="delimiter">,</stringProp>
+            <stringProp name="fileEncoding" />
+            <stringProp name="filename">case id.csv</stringProp>
+            <boolProp name="ignoreFirstLine">true</boolProp>
+            <boolProp name="quotedData">false</boolProp>
+            <boolProp name="recycle">true</boolProp>
+            <stringProp name="shareMode">shareMode.all</stringProp>
+            <boolProp name="stopThread">false</boolProp>
+            <stringProp name="variableNames">case_id</stringProp>
+          </CSVDataSet>
+          <hashTree />
+          <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="Per-case request values" enabled="true">
+            <collectionProp name="UserParameters.names">
+              <stringProp name="name_0">njs_popup_rnd</stringProp>
+              <stringProp name="name_1">intake_page_rnd</stringProp>
+              <stringProp name="name_2">workflow_rnd_1</stringProp>
+              <stringProp name="name_3">workflow_rnd_2</stringProp>
+            </collectionProp>
+            <collectionProp name="UserParameters.thread_values">
+              <collectionProp name="user_0">
+                <stringProp name="value_0">0.${__Random(100000000,999999999,)}</stringProp>
+                <stringProp name="value_1">0.${__Random(100000000,999999999,)}</stringProp>
+                <stringProp name="value_2">0.${__Random(100000000,999999999,)}</stringProp>
+                <stringProp name="value_3">0.${__Random(100000000,999999999,)}</stringProp>
+              </collectionProp>
+            </collectionProp>
+            <boolProp name="UserParameters.per_iteration">true</boolProp>
+          </UserParameters>
+          <hashTree />
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Open case incident summary" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+              <collectionProp name="Arguments.arguments" />
+            </elementProp>
+            <stringProp name="HTTPSampler.domain" />
+            <stringProp name="HTTPSampler.port" />
+            <stringProp name="HTTPSampler.protocol" />
+            <stringProp name="HTTPSampler.contentEncoding" />
+            <stringProp name="HTTPSampler.path">/RMS/AspSoft/Dispatcher.aspx?nextPID=inquireIncidentSummary&amp;case_id=${case_id}</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re" />
+            <stringProp name="HTTPSampler.connect_timeout" />
+            <stringProp name="HTTPSampler.response_timeout" />
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Open case headers" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">Referer</stringProp>
+                  <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/AspSoft/inbox/inboxTaskList.aspx?nextPID=listInbox_ActiveCase_NO&amp;inbox_staff_id=1&amp;inbox_sub_id=10030811&amp;UseDefault=1&amp;is_temp_page_size=1&amp;page_size=100</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree />
+          </hashTree>
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Modify case permission" enabled="true">
+            <boolProp name="TransactionController.include_timers">false</boolProp>
+            <boolProp name="TransactionController.parent">true</boolProp>
+          </TransactionController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/AspSoft/Security/CasePermission.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments" />
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/AspSoft/Security/CasePermission.aspx?nextPID=casepermission&amp;case_id=${case_id}&amp;division_id=3</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Permission page headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/AspSoft/Dispatcher.aspx?nextPID=inquireIncidentSummary&amp;case_id=${case_id}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Permission VIEWSTATE" enabled="true">
+                <stringProp name="HtmlExtractor.refname">permission_viewstate</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATE']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Permission VIEWSTATEGENERATOR" enabled="true">
+                <stringProp name="HtmlExtractor.refname">permission_viewstate_generator</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATEGENERATOR']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/AspSoft/Security/CasePermission.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="__EVENTTARGET" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTTARGET</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTARGUMENT" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTARGUMENT</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00_ContentPlaceHolder1_tvRole_ExpandState" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">eennnnnnnnennnnnnnnnennennnnnnnnnennennnnnnnnnennennnnnnennennnnnnnnnennennnnnnnnnennnennnnnnnnnnnennnnnnnnnnennnnennnnnnnnnnnennneennnnnnnnnnnennnnnnnnnnnennnnnnnnnnnennnnnnnnnennennnnnnennennnnnnnnnnnennnnnnnnnnnennnnnnnnnennennnnnnennennnnnnnnnennennnnnnnnnennennnnnnnnnnnennnnnnnnnenneennnnnnnnnnnennnnnnnnnnnennnennnnnnnnnnnneennnnnnnnennnnnnnnnnnennnennnnnnnnnnnennnennnnnnenneennnnnnnneennnnnnnnnnnnnnennnnnnnnnnnennnennnnnnenneennnnnnnnnnnennnnnnnnnnnennnnnnennennnnnnnnnennennnnnnnnnennennnnnnenneennnnnnnnnnnennnnnnnnnnnennnnnnnnnennennnnnnennennnnnnnnnnnennnennnnnnnnnennennnnnnenneennnnnnnnnnnennnnnnennennnnnnnnnenneennnnnnnnnnnennnnnnnnnnnennnnnnnnnennennnnnnnnnnneennnnnnnnennnnnnennennnnnnnnnnnennnnnnnnnennnnnnnnnennennnnnnnnnnnennnnnnennennnnnnnnnenn</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00_ContentPlaceHolder1_tvRole_ExpandState</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00_ContentPlaceHolder1_tvRole_SelectedNode" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00_ContentPlaceHolder1_tvRole_SelectedNode</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00_ContentPlaceHolder1_tvRole_PopulateLog" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00_ContentPlaceHolder1_tvRole_PopulateLog</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${permission_viewstate}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATE</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATEGENERATOR" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${permission_viewstate_generator}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATEGENERATOR</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ctl15$case_locator~|~|A" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ctl15$case_locator~|~|A</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ddlCaseOpen" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">LTD</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ddlCaseOpen</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$btnApply" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">Apply</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$btnApply</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hidOwnerID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">1</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hidOwnerID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$hdnFocusObjectId" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$hdnFocusObjectId</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/AspSoft/Security/CasePermission.aspx?nextPID=casepermission&amp;case_id=${case_id}&amp;division_id=3</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Permission save headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Origin</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/AspSoft/Security/CasePermission.aspx?nextPID=casepermission&amp;case_id=${case_id}&amp;division_id=3</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+            </hashTree>
+          </hashTree>
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="Add investigation report" enabled="true">
+            <boolProp name="TransactionController.include_timers">false</boolProp>
+            <boolProp name="TransactionController.parent">true</boolProp>
+          </TransactionController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/Aspsoft/Dispatcher.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments" />
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&amp;case_id=${case_id}&amp;division_id=3&amp;report_type=C&amp;indicator_type=1</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Police report list headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/AspSoft/Dispatcher.aspx?nextPID=inquireIncidentSummary&amp;case_id=${case_id}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Report list VIEWSTATE" enabled="true">
+                <stringProp name="HtmlExtractor.refname">report_list_viewstate</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATE']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Report list VIEWSTATEGENERATOR" enabled="true">
+                <stringProp name="HtmlExtractor.refname">report_list_viewstate_generator</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATEGENERATOR']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Report list timestamp" enabled="true">
+                <stringProp name="HtmlExtractor.refname">report_list_timestamp</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name$='doubleEntryTimeStamp']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/Aspsoft/Dispatcher.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="__VIEWSTATE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${report_list_viewstate}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATE</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATEGENERATOR" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${report_list_viewstate_generator}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATEGENERATOR</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTTARGET" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTTARGET</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTARGUMENT" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTARGUMENT</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ctl15$case_locator~|~|A" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ctl15$case_locator~|~|A</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$gridview_ddlPageSize" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">30</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$gridview_ddlPageSize</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$gridview_ddlPageSize" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">30</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$gridview_ddlPageSize</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$template_id~|~|A" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">588</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$template_id~|~|A</stringProp>
+                  </elementProp>
+                  <elementProp name="submit_button" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">New Report</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">submit_button</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$PID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">listPoliceReport</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$PID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$doubleEntryTimeStamp" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${report_list_timestamp}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$doubleEntryTimeStamp</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$hdnFocusObjectId" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$hdnFocusObjectId</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&amp;case_id=${case_id}&amp;division_id=3&amp;report_type=C&amp;indicator_type=1</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="New report headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Origin</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&amp;case_id=${case_id}&amp;division_id=3&amp;report_type=C&amp;indicator_type=1</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract FormGUID" enabled="true">
+                <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+                <stringProp name="RegexExtractor.refname">FormGUID</stringProp>
+                <stringProp name="RegexExtractor.regex">FormGUID=([0-9a-fA-F-]+)</stringProp>
+                <stringProp name="RegexExtractor.template">$1$</stringProp>
+                <stringProp name="RegexExtractor.match_number">1</stringProp>
+                <stringProp name="RegexExtractor.default">NOT_FOUND</stringProp>
+                <stringProp name="Sample.scope">all</stringProp>
+              </RegexExtractor>
+              <hashTree />
+              <XPathExtractor guiclass="XPathExtractorGui" testclass="XPathExtractor" testname="Extract case master object" enabled="true">
+                <stringProp name="XPathExtractor.default">NOT_FOUND</stringProp>
+                <stringProp name="XPathExtractor.refname">case_master_object</stringProp>
+                <stringProp name="XPathExtractor.matchNumber">1</stringProp>
+                <stringProp name="XPathExtractor.xpathQuery">//input[@objectname='master_id_list' and contains(@value, concat('case_id#', '${case_id}', '#'))]/@value</stringProp>
+                <boolProp name="XPathExtractor.validate">false</boolProp>
+                <boolProp name="XPathExtractor.tolerant">true</boolProp>
+                <boolProp name="XPathExtractor.namespace">false</boolProp>
+                <boolProp name="XPathExtractor.quiet">true</boolProp>
+                <boolProp name="XPathExtractor.show_warnings">false</boolProp>
+                <boolProp name="XPathExtractor.report_errors">false</boolProp>
+                <boolProp name="XPathExtractor.download_dtds">false</boolProp>
+                <boolProp name="XPathExtractor.whitespace">true</boolProp>
+                <boolProp name="XPathExtractor.fragment">false</boolProp>
+                <stringProp name="Sample.scope">all</stringProp>
+              </XPathExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/aspsoft/popupdispatcher.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments" />
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/aspsoft/popupdispatcher.aspx?nextPID=addCaseNJSCode&amp;case_id=${case_id}&amp;PartialRefresh=listIntakeFormMaster_NJS&amp;template_id=588&amp;report_id=0&amp;rnd=${njs_popup_rnd}</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="NJS popup headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&amp;template_id=588&amp;report_id=0&amp;case_id=${case_id}&amp;PID=listPoliceReport&amp;FormGUID=${FormGUID}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="NJS VIEWSTATE" enabled="true">
+                <stringProp name="HtmlExtractor.refname">njs_viewstate</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATE']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="NJS VIEWSTATEGENERATOR" enabled="true">
+                <stringProp name="HtmlExtractor.refname">njs_viewstate_generator</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATEGENERATOR']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="NJS EVENTVALIDATION" enabled="true">
+                <stringProp name="HtmlExtractor.refname">njs_eventvalidation</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__EVENTVALIDATION']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="NJS timestamp" enabled="true">
+                <stringProp name="HtmlExtractor.refname">njs_timestamp</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name$='doubleEntryTimeStamp']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/aspsoft/popupdispatcher.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="__VIEWSTATE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${njs_viewstate}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATE</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATEGENERATOR" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${njs_viewstate_generator}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATEGENERATOR</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTVALIDATION" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${njs_eventvalidation}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTVALIDATION</stringProp>
+                  </elementProp>
+                  <elementProp name="addNJSCode_delete" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">addNJSCode_delete</stringProp>
+                  </elementProp>
+                  <elementProp name="addNJSCode_indicator" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">1</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">addNJSCode_indicator</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$ctl03$inv_njs_id~|addNJSCode~|A" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$ctl03$inv_njs_id~|addNJSCode~|A</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_count~|addNJSCode~|A" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">1</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_count~|addNJSCode~|A</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_description~|addNJSCode~|A" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">SHOPLIFTING 4TH DEGREE &gt;$200&lt; $75,000</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_description~|addNJSCode~|A</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_code~|addNJSCode~|A" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">2C:20-11C(3)</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$ctl03$njs_code~|addNJSCode~|A</stringProp>
+                  </elementProp>
+                  <elementProp name="submit_button" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">Save</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">submit_button</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$PID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">addCaseNJSCode</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$PID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ctl00$doubleEntryTimeStamp" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${njs_timestamp}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ctl00$doubleEntryTimeStamp</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/aspsoft/popupdispatcher.aspx?nextPID=addCaseNJSCode&amp;case_id=${case_id}&amp;PartialRefresh=listIntakeFormMaster_NJS&amp;template_id=588&amp;report_id=0&amp;rnd=${njs_popup_rnd}</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="NJS save headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Origin</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/aspsoft/popupdispatcher.aspx?nextPID=addCaseNJSCode&amp;case_id=${case_id}&amp;PartialRefresh=listIntakeFormMaster_NJS&amp;template_id=588&amp;report_id=0&amp;rnd=${njs_popup_rnd}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/Aspsoft/IntakeForm/middlepage.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments" />
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&amp;template_id=588&amp;report_id=0&amp;case_id=${case_id}&amp;PID=listPoliceReport&amp;FormGUID=${FormGUID}&amp;PartialRefresh_Ajax=listIntakeFormMaster_NJS&amp;rnd=0.${__Random(100000000,999999999,)}</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="NJS refresh headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">X-Requested-With</stringProp>
+                    <stringProp name="Header.value">XMLHttpRequest</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&amp;template_id=588&amp;report_id=0&amp;case_id=${case_id}&amp;PID=listPoliceReport&amp;FormGUID=${FormGUID}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract inv_njs_id" enabled="true">
+                <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+                <stringProp name="RegexExtractor.refname">inv_njs_id</stringProp>
+                <stringProp name="RegexExtractor.regex">name=['"]inv_njs_id['"][^&gt;]*value=['"](\d+)['"]</stringProp>
+                <stringProp name="RegexExtractor.template">$1$</stringProp>
+                <stringProp name="RegexExtractor.match_number">1</stringProp>
+                <stringProp name="RegexExtractor.default">NOT_FOUND</stringProp>
+                <stringProp name="Sample.scope">parent</stringProp>
+              </RegexExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/Aspsoft/IntakeForm/middlepage.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="template_id" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">588</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">template_id</stringProp>
+                  </elementProp>
+                  <elementProp name="report_id" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">report_id</stringProp>
+                  </elementProp>
+                  <elementProp name="p" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${objects_parameter_b64}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">p</stringProp>
+                  </elementProp>
+                  <elementProp name="p2" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${objects_data_index_b64}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">p2</stringProp>
+                  </elementProp>
+                  <elementProp name="p3" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">p3</stringProp>
+                  </elementProp>
+                  <elementProp name="PageNum" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">PageNum</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/Aspsoft/IntakeForm/middlepage.aspx?action=create_report&amp;nextPID=intakeFormMiddelPage&amp;case_id=${case_id}&amp;rnd=0.${__Random(100000000,999999999,)}</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Create report headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">X-Requested-With</stringProp>
+                    <stringProp name="Header.value">XMLHttpRequest</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded; charset=UTF-8</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Origin</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&amp;template_id=588&amp;report_id=0&amp;case_id=${case_id}&amp;PID=listPoliceReport&amp;FormGUID=${FormGUID}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Build NJS and case object payload" enabled="true">
+                <stringProp name="scriptLanguage">groovy</stringProp>
+                <stringProp name="parameters" />
+                <stringProp name="filename" />
+                <boolProp name="cacheKey">true</boolProp>
+                <stringProp name="script">import java.nio.charset.StandardCharsets
+import java.util.Base64
+
+def required = { String name -&gt;
+    def value = vars.get(name)
+    if (value == null || value == '' || value == 'NOT_FOUND') {
+        throw new IllegalStateException('Missing required variable: ' + name)
+    }
+    value
+}
+def idFrom = { String value, String key -&gt;
+    def matcher = (value =~ java.util.regex.Pattern.quote(key) + '#(\\d+)#')
+    if (!matcher.find()) {
+        throw new IllegalStateException('Cannot extract ' + key + ' from ' + value)
+    }
+    matcher.group(1)
+}
+
+def caseObject = required('case_master_object')
+def caseId = idFrom(caseObject, 'case_id')
+def njsId = required('inv_njs_id')
+def njsObject = 'inv_njs_id#' + njsId + '#'
+def objectParameter = 'NJS::' + njsObject + '\u0003' + 'CASE:CASE:' + caseObject
+def objectDataIndex = 'NJS::inv_njs_id:' + njsId + ':' + njsObject + '\u0002' + 'CASE:CASE:case_id:' + caseId + ':' + caseObject
+vars.put('objects_parameter_b64', Base64.encoder.encodeToString(objectParameter.getBytes(StandardCharsets.UTF_8)))
+vars.put('objects_data_index_b64', Base64.encoder.encodeToString(objectDataIndex.getBytes(StandardCharsets.UTF_8)))</stringProp>
+              </JSR223PreProcessor>
+              <hashTree />
+              <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor" testname="Extract report_id" enabled="true">
+                <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+                <stringProp name="RegexExtractor.refname">report_id</stringProp>
+                <stringProp name="RegexExtractor.regex">(?s)^\s*(\d+)\s*$</stringProp>
+                <stringProp name="RegexExtractor.template">$1$</stringProp>
+                <stringProp name="RegexExtractor.match_number">1</stringProp>
+                <stringProp name="RegexExtractor.default">NOT_FOUND</stringProp>
+                <stringProp name="Sample.scope">parent</stringProp>
+              </RegexExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/Aspsoft/IntakeForm/Intake.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments" />
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&amp;MPID=intakeFormMiddelPage&amp;case_id=${case_id}&amp;template_id=588&amp;report_id=${report_id}&amp;rnd=${intake_page_rnd}</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Intake page headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/middlepage.aspx?nextPID=intakeFormMiddelPage&amp;template_id=588&amp;report_id=0&amp;case_id=${case_id}&amp;PID=listPoliceReport&amp;FormGUID=${FormGUID}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Intake VIEWSTATE" enabled="true">
+                <stringProp name="HtmlExtractor.refname">intake_viewstate</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATE']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Intake VIEWSTATEGENERATOR" enabled="true">
+                <stringProp name="HtmlExtractor.refname">intake_viewstate_generator</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATEGENERATOR']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Intake EVENTVALIDATION" enabled="true">
+                <stringProp name="HtmlExtractor.refname">intake_eventvalidation</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__EVENTVALIDATION']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/AspSoft/IntakeForm/Intake.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="__VIEWSTATE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${intake_viewstate}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATE</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATEGENERATOR" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${intake_viewstate_generator}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATEGENERATOR</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTVALIDATION" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${intake_eventvalidation}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTVALIDATION</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ctl15$case_locator~|~|A" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ctl15$case_locator~|~|A</stringProp>
+                  </elementProp>
+                  <elementProp name="ORG_IMAGE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">/AspSoft/ImageHandler.ashx?image_code=AGENCY_LOGO&amp;smalllogo=1&amp;region_id=110970</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ORG_IMAGE</stringProp>
+                  </elementProp>
+                  <elementProp name="CASE_NO_TYPE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">CASE_NO_TYPE</stringProp>
+                  </elementProp>
+                  <elementProp name="CASE_TYPE_NO" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">CASE_TYPE_NO</stringProp>
+                  </elementProp>
+                  <elementProp name="call_type" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">SHOPLIFTING 4TH DEGREE &gt;$200&lt; $75,000</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">call_type</stringProp>
+                  </elementProp>
+                  <elementProp name="njs_code" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">2C:20-11C(3)</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">njs_code</stringProp>
+                  </elementProp>
+                  <elementProp name="between" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">between</stringProp>
+                  </elementProp>
+                  <elementProp name="premises_type" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">premises_type</stringProp>
+                  </elementProp>
+                  <elementProp name="weapon" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">weapon</stringProp>
+                  </elementProp>
+                  <elementProp name="modus_operandi" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">modus_operandi</stringProp>
+                  </elementProp>
+                  <elementProp name="INV_VEHICLE_TYPE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">INV_VEHICLE_TYPE</stringProp>
+                  </elementProp>
+                  <elementProp name="TOW_COMPANY" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">TOW_COMPANY</stringProp>
+                  </elementProp>
+                  <elementProp name="teletype_alarm" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">teletype_alarm</stringProp>
+                  </elementProp>
+                  <elementProp name="technical_services" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">technical_services</stringProp>
+                  </elementProp>
+                  <elementProp name="technician_agency" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">technician_agency</stringProp>
+                  </elementProp>
+                  <elementProp name="weather" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">weather</stringProp>
+                  </elementProp>
+                  <elementProp name="nic" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">nic</stringProp>
+                  </elementProp>
+                  <elementProp name="assisting_agencies" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">assisting_agencies</stringProp>
+                  </elementProp>
+                  <elementProp name="no_accused" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">no_accused</stringProp>
+                  </elementProp>
+                  <elementProp name="adult" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">adult</stringProp>
+                  </elementProp>
+                  <elementProp name="juvenile" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">juvenile</stringProp>
+                  </elementProp>
+                  <elementProp name="status_crime" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">status_crime</stringProp>
+                  </elementProp>
+                  <elementProp name="CASE_STATUS" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">CASE_STATUS</stringProp>
+                  </elementProp>
+                  <elementProp name="ucr_status" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ucr_status</stringProp>
+                  </elementProp>
+                  <elementProp name="date_cleared" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">date_cleared</stringProp>
+                  </elementProp>
+                  <elementProp name="CASE_MEMO" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">CASE_MEMO</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnTemplateID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">588</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnTemplateID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnTemplateCode" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">RMS_INVESTIGATIONREPORT</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnTemplateCode</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnRequiredTemplateCode" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnRequiredTemplateCode</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnReportID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${report_id}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnReportID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnPrintPopup" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">Y</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnPrintPopup</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnHazMatReportIDs" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnHazMatReportIDs</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnCaseID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${case_id}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnCaseID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnNextPID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">listPoliceReport</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnNextPID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnDivisionID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">3</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnDivisionID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnNoMathchKeyList" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnNoMathchKeyList</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnTotalPageNumber" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnTotalPageNumber</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnCurrentPageIndex" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnCurrentPageIndex</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnToPageURL" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnToPageURL</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnTotalReportNumber" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnTotalReportNumber</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnCurrentReportIndex" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnCurrentReportIndex</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnToReportURL" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnToReportURL</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnSplitObjectName" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnSplitObjectName</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnCurrentReportObjectValue" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnCurrentReportObjectValue</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnCurrentReportObjectFiled" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnCurrentReportObjectFiled</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnRichTextBoxNames" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnRichTextBoxNames</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnUrlOtherIds" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnUrlOtherIds</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnIntakeWorkflowConfirmKey" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">N</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnIntakeWorkflowConfirmKey</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnMasterPageFile" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">/RMS/AspSoft/Frame.Master</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnMasterPageFile</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnPrintDirectly" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnPrintDirectly</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnParentID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnParentID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$hdnParentTemplateID" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$hdnParentTemplateID</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$__hdnTempMultisection_call_type" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">SHOPLIFTING 4TH DEGREE &gt;$200&lt; $75,000</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$__hdnTempMultisection_call_type</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$__hdnTempMultisection_njs_code" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">2C:20-11C(3)</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$__hdnTempMultisection_njs_code</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$hdnFocusObjectId" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$hdnFocusObjectId</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/AspSoft/IntakeForm/Intake.aspx?action=auto_confirm&amp;save_data=1&amp;case_id=${case_id}&amp;template_id=588&amp;report_id=${report_id}&amp;rnd=0.${__Random(100000000,999999999,)}</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Auto-confirm headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">X-Requested-With</stringProp>
+                    <stringProp name="Header.value">XMLHttpRequest</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded; charset=UTF-8</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Origin</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&amp;MPID=intakeFormMiddelPage&amp;case_id=${case_id}&amp;template_id=588&amp;report_id=${report_id}&amp;rnd=${intake_page_rnd}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments" />
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&amp;report_ids=${report_id}&amp;rnd=${workflow_rnd_1}&amp;rnd=${workflow_rnd_2}</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Workflow page headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&amp;MPID=intakeFormMiddelPage&amp;case_id=${case_id}&amp;template_id=588&amp;report_id=${report_id}&amp;rnd=${intake_page_rnd}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Workflow VIEWSTATE" enabled="true">
+                <stringProp name="HtmlExtractor.refname">workflow_viewstate</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATE']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+              <HtmlExtractor guiclass="HtmlExtractorGui" testclass="HtmlExtractor" testname="Workflow VIEWSTATEGENERATOR" enabled="true">
+                <stringProp name="HtmlExtractor.refname">workflow_viewstate_generator</stringProp>
+                <stringProp name="HtmlExtractor.expr">input[name='__VIEWSTATEGENERATOR']</stringProp>
+                <stringProp name="HtmlExtractor.attribute">value</stringProp>
+                <stringProp name="HtmlExtractor.default">NOT_FOUND</stringProp>
+                <boolProp name="HtmlExtractor.default_empty_value">false</boolProp>
+                <stringProp name="HtmlExtractor.match_number">1</stringProp>
+                <stringProp name="HtmlExtractor.extractor_impl" />
+                <stringProp name="Sample.scope">parent</stringProp>
+              </HtmlExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="ctl00$ContentPlaceHolder1$ScriptManager1" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">ctl00$ContentPlaceHolder1$UpdatePanel1|ctl00$ContentPlaceHolder1$ddlReportNextStep</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ScriptManager1</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTTARGET" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">ctl00$ContentPlaceHolder1$ddlReportNextStep</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTTARGET</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTARGUMENT" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTARGUMENT</stringProp>
+                  </elementProp>
+                  <elementProp name="__LASTFOCUS" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__LASTFOCUS</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${workflow_viewstate}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATE</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATEGENERATOR" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${workflow_viewstate_generator}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATEGENERATOR</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$ddlReportNextStep" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">ROUTE1</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ddlReportNextStep</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$nbReviewNote" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$nbReviewNote</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidRouteType" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidRouteType</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidReviewNote" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidReviewNote</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidFlag" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidFlag</stringProp>
+                  </elementProp>
+                  <elementProp name="__ASYNCPOST" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">true</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__ASYNCPOST</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&amp;report_ids=${report_id}&amp;rnd=${workflow_rnd_1}&amp;rnd=${workflow_rnd_2}</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Workflow selection headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">X-Requested-With</stringProp>
+                    <stringProp name="Header.value">XMLHttpRequest</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded; charset=UTF-8</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Origin</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&amp;report_ids=${report_id}&amp;rnd=${workflow_rnd_1}&amp;rnd=${workflow_rnd_2}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+              <BoundaryExtractor guiclass="BoundaryExtractorGui" testclass="BoundaryExtractor" testname="Extract updated workflow VIEWSTATE" enabled="true">
+                <stringProp name="BoundaryExtractor.refname">workflow_updated_viewstate</stringProp>
+                <stringProp name="BoundaryExtractor.boundaries">hiddenField|__VIEWSTATE|</stringProp>
+                <stringProp name="BoundaryExtractor.rightBoundary">|8|hiddenField|__VIEWSTATEGENERATOR|</stringProp>
+                <stringProp name="BoundaryExtractor.defaultValue">NOT_FOUND</stringProp>
+                <stringProp name="BoundaryExtractor.matchNumber">1</stringProp>
+                <stringProp name="BoundaryExtractor.useHeaders">false</stringProp>
+              </BoundaryExtractor>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="action" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">clear</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">action</stringProp>
+                  </elementProp>
+                  <elementProp name="report_ids" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${report_id}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">report_ids</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Workflow clear headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">X-Requested-With</stringProp>
+                    <stringProp name="Header.value">XMLHttpRequest</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded; charset=UTF-8</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Origin</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&amp;report_ids=${report_id}&amp;rnd=${workflow_rnd_1}&amp;rnd=${workflow_rnd_2}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="ctl00$ContentPlaceHolder1$ddlReportNextStep" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">ROUTE1</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$ddlReportNextStep</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$nbReviewNote" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$nbReviewNote</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidRouteType" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidRouteType</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidReviewNote" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidReviewNote</stringProp>
+                  </elementProp>
+                  <elementProp name="ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidFlag" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">0</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">ctl00$ContentPlaceHolder1$igvReportWorkflow$ctl02$hidFlag</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTTARGET" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">ctl00$ContentPlaceHolder1$btnSave</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTTARGET</stringProp>
+                  </elementProp>
+                  <elementProp name="__EVENTARGUMENT" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__EVENTARGUMENT</stringProp>
+                  </elementProp>
+                  <elementProp name="__LASTFOCUS" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value" />
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__LASTFOCUS</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATE" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${workflow_updated_viewstate}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATE</stringProp>
+                  </elementProp>
+                  <elementProp name="__VIEWSTATEGENERATOR" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">true</boolProp>
+                    <stringProp name="Argument.value">${workflow_viewstate_generator}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                    <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                    <stringProp name="Argument.name">__VIEWSTATEGENERATOR</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&amp;report_ids=${report_id}&amp;rnd=${workflow_rnd_1}&amp;rnd=${workflow_rnd_2}</stringProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Workflow save headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Content-Type</stringProp>
+                    <stringProp name="Header.value">application/x-www-form-urlencoded</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Origin</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}</stringProp>
+                  </elementProp>
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/AspSoft/IntakeForm/IntakeReportAssignWorkflow.aspx?nextPID=updateReportWorkflowBatch&amp;report_ids=${report_id}&amp;rnd=${workflow_rnd_1}&amp;rnd=${workflow_rnd_2}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+            </hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /RMS/Aspsoft/Dispatcher.aspx" enabled="true">
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" enabled="true">
+                <collectionProp name="Arguments.arguments" />
+              </elementProp>
+              <stringProp name="HTTPSampler.domain" />
+              <stringProp name="HTTPSampler.port" />
+              <stringProp name="HTTPSampler.protocol" />
+              <stringProp name="HTTPSampler.contentEncoding" />
+              <stringProp name="HTTPSampler.path">/RMS/Aspsoft/Dispatcher.aspx?nextPID=listPoliceReport&amp;case_id=${case_id}&amp;division_id=3</stringProp>
+              <stringProp name="HTTPSampler.method">GET</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+              <stringProp name="HTTPSampler.embedded_url_re" />
+              <stringProp name="HTTPSampler.connect_timeout" />
+              <stringProp name="HTTPSampler.response_timeout" />
+            </HTTPSamplerProxy>
+            <hashTree>
+              <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="Return to report list headers" enabled="true">
+                <collectionProp name="HeaderManager.headers">
+                  <elementProp name="" elementType="Header">
+                    <stringProp name="Header.name">Referer</stringProp>
+                    <stringProp name="Header.value">${__P(protocol,https)}://${__P(target_host,hcrms.csitech.com)}:${__P(target_port,443)}/RMS/Aspsoft/IntakeForm/Intake.aspx?nextPID=listPoliceReport&amp;MPID=intakeFormMiddelPage&amp;case_id=${case_id}&amp;template_id=588&amp;report_id=${report_id}&amp;rnd=${intake_page_rnd}</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </HeaderManager>
+              <hashTree />
+            </hashTree>
+          </hashTree>
+        </hashTree>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>true</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>true</responseData>
+              <samplerData>true</samplerData>
+              <xml>true</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>true</requestHeaders>
+              <responseDataOnError>true</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">${__P(debug_result_file,HC_permission_report_debug.jtl)}</stringProp>
+        </ResultCollector>
+        <hashTree />
+        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector" testname="Simple Data Writer" enabled="false">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename">${__P(load_result_file,HC_permission_report_load.jtl)}</stringProp>
+        </ResultCollector>
+        <hashTree />
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

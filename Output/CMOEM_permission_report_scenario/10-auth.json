@@ -1,0 +1,76 @@
+[
+  {
+    "type": "http_defaults",
+    "host": "${__P(target_host,10.1.3.248)}",
+    "port": "${__P(target_port,80)}",
+    "protocol": "${__P(protocol,http)}",
+    "encoding": "${__P(content_encoding,UTF-8)}",
+    "path": "${__P(base_path,/)}"
+  },
+  {"type": "cookie_manager", "clear_each_iteration": false},
+  {"type": "cache_manager", "clear_each_iteration": false, "use_expires": true},
+  {
+    "type": "once_only_controller",
+    "name": "Login once",
+    "children": [
+      {
+        "type": "http_sampler",
+        "name": "GET /InfoRMS30/Login.aspx",
+        "method": "GET",
+        "path": "/InfoRMS30/Login.aspx",
+        "follow_redirects": true,
+        "children": [
+          {"type": "css_extractor", "name": "Login VIEWSTATE", "refname": "login_viewstate", "expression": "input[name='__VIEWSTATE']", "attribute": "value", "match_number": "1", "default_value": "NOT_FOUND", "scope": "parent"},
+          {"type": "css_extractor", "name": "Login VIEWSTATEGENERATOR", "refname": "login_viewstate_generator", "expression": "input[name='__VIEWSTATEGENERATOR']", "attribute": "value", "match_number": "1", "default_value": "NOT_FOUND", "scope": "parent"}
+        ]
+      },
+      {
+        "type": "http_sampler",
+        "name": "POST /InfoRMS30/Login.aspx",
+        "method": "POST",
+        "path": "/InfoRMS30/Login.aspx",
+        "follow_redirects": true,
+        "params": [
+          {"name": "__VIEWSTATE", "value": "${login_viewstate}", "always_encode": true},
+          {"name": "__VIEWSTATEGENERATOR", "value": "${login_viewstate_generator}", "always_encode": true},
+          {"name": "txtUserName", "value": "sa01", "always_encode": true},
+          {"name": "txtPassword", "value": "QyQhMTk5MCFuZjAkaGFyMzIwMjY=", "always_encode": true},
+          {"name": "btnLogin", "value": "Login", "always_encode": true},
+          {"name": "hdnDebugConn", "value": "", "always_encode": true},
+          {"name": "hdnDeviceInfo", "value": "WUFPWFVFHzUwOUE0QzAwM0UyMkZQWDJYSjIfNTM0NzhkNWEzN2ViYjFlNGYxMjhlY2JmZjViMTEwMjZmZDVkOWUwYh9XaW5kb3dzH0ludGVsKFIpQ29yZShUTSlpNS02NTAwQ1BVQDMuMjBHSHofTWljcm9zb2Z0IFdpbmRvd3MgMTAgUHJvIDY0LWJpdB9yZWdPSw==", "always_encode": true},
+          {"name": "usbKeyValue", "value": "", "always_encode": true},
+          {"name": "computerNameValue", "value": "", "always_encode": true}
+        ],
+        "children": [
+          {"type": "header_manager", "name": "Login headers", "headers": [{"name": "Content-Type", "value": "application/x-www-form-urlencoded"}, {"name": "Origin", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"}, {"name": "Referer", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Login.aspx"}]},
+          {"type": "css_extractor", "name": "Disclaimer VIEWSTATE", "refname": "disclaimer_viewstate", "expression": "input[name='__VIEWSTATE']", "attribute": "value", "match_number": "1", "default_value": "NOT_FOUND", "scope": "all"},
+          {"type": "css_extractor", "name": "Disclaimer VIEWSTATEGENERATOR", "refname": "disclaimer_viewstate_generator", "expression": "input[name='__VIEWSTATEGENERATOR']", "attribute": "value", "match_number": "1", "default_value": "NOT_FOUND", "scope": "all"},
+          {"type": "css_extractor", "name": "Disclaimer EVENTVALIDATION", "refname": "disclaimer_eventvalidation", "expression": "input[name='__EVENTVALIDATION']", "attribute": "value", "match_number": "1", "default_value": "NOT_FOUND", "scope": "all"}
+        ]
+      },
+      {
+        "type": "http_sampler",
+        "name": "POST /InfoRMS30/DisclaimerRedirect.aspx",
+        "method": "POST",
+        "path": "/InfoRMS30/DisclaimerRedirect.aspx?division_id=3",
+        "follow_redirects": true,
+        "params": [
+          {"name": "__VIEWSTATE", "value": "${disclaimer_viewstate}", "always_encode": true},
+          {"name": "__VIEWSTATEGENERATOR", "value": "${disclaimer_viewstate_generator}", "always_encode": true},
+          {"name": "__EVENTVALIDATION", "value": "${disclaimer_eventvalidation}", "always_encode": true},
+          {"name": "btnJump", "value": "", "always_encode": true}
+        ],
+        "children": [
+          {"type": "header_manager", "name": "Disclaimer headers", "headers": [{"name": "Content-Type", "value": "application/x-www-form-urlencoded"}, {"name": "Origin", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}"}, {"name": "Referer", "value": "${__P(protocol,http)}://${__P(target_host,10.1.3.248)}:${__P(target_port,80)}/InfoRMS30/Index.aspx"}]}
+        ]
+      },
+      {
+        "type": "http_sampler",
+        "name": "GET /InfoRMS30/Home.aspx",
+        "method": "GET",
+        "path": "/InfoRMS30/Home.aspx?division_id=3",
+        "follow_redirects": true
+      }
+    ]
+  }
+]
