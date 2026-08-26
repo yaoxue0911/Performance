@@ -73,6 +73,7 @@ python3 scripts/generate_jmx_tree.py \
 - 生成器 `--validate` 返回成功。
 - 运行现有生成器测试，确认树形结构和错误处理没有回归。
 - 本工作流不自动加入断言；建议断言只保留在审阅说明中。
+- Jmx中不能出现任何中文
 
 ## Validator 终态协议
 

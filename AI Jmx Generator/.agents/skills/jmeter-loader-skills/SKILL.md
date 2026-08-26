@@ -33,9 +33,9 @@ description: Use when converting SAZ or Fiddler HTTP captures into parameterized
 1. 读取 `references/saz-analysis.md` 和
    `references/parameterization-rules.md`。
 2. 按两个参考文档规则生成 `.md` 文字计划。
-3. 把计划发给用户，等待审批。
-4. 用户提出修改时只修订文字计划，保持在阶段 1。
-
+3. 将所有假设、默认值和待确认内容集中写入计划。
+4. 输出计划并请求一次性审批。
+5. 用户提出修改时只修订文字计划。
 
 ## 阶段 2：生成 JMX
 

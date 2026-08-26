@@ -39,7 +39,7 @@
 - 稳定负载：达到目标并发后通常持续 10～20 分钟，观察稳定态。
 - 峰值或突发：短时高并发，每个线程只执行一次。观察限流、错误和恢复。
 
-缺少并发策略时向用户确认，不要从抓包流量数量推断并发用户数。
+缺少并发策略时使用并发数=1,rampup=1,duration=600。并在文字计划的“待用户确认”章节集中列出；不得在生成计划前逐项追问。
 
 ## 设计文字版测试树
 
@@ -47,10 +47,11 @@
 
 1. 包含适用于当前场景的 Thread Group、业务 Loop Controller、Transaction Controller、Sampler、Extractor、Timer 和 Listener。
 2. 每个独立业务事务放在 Transaction Controller 中。
-3. 请求名称采用 `<METHOD> <实际路径> <用途>`，不加序号。所有请求名称、方法、路径、headers、params、body 和业务步骤必须来自捕获内容及用户批准的计划；不得复制示例文件中的业务值。
+3. 请求名称采用 `<METHOD> <实际路径> <用途>`，使用英文，不加序号。所有请求名称、方法、路径、headers、params、body 和业务步骤必须来自捕获内容及用户批准的计划；不得复制示例文件中的业务值。
 4. Controller、Sampler 及其子元件按实际执行顺序排列。
 5. 只加入捕获内容和需求能够证明需要的组件，不为满足组件清单创建空节点。
 6. HTTP Request Sampler 均使用 `follow_redirects=true`
+7. 所有阶段一律忽略 Referer 请求头，不得在测试计划、Scenario JSON 或 JMX 中生成或重建。删除 Referer 后 Header Manager 为空时，不生成该 Header Manager。
 
 ## 认证与初始化流程
 
