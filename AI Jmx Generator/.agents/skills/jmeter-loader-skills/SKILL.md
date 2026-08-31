@@ -22,9 +22,7 @@ description: Use when converting SAZ or Fiddler HTTP captures into parameterized
 | 决定字段提取、随机化、CSV 或静态取值 | `references/parameterization-rules.md` |
 | 把批准计划转换为嵌套场景 JSON | `references/scenario-schema.md` |
 | 生成及验收 JMX | `references/validation-rules.md` |
-| 查询特定 JMeter 组件 | `references/component_reference.md` 中对应章节 |
-| 查询 JMeter 函数 | `references/functions_reference.md` 中对应函数 |
-| 查询属性、XML 或 Sampler 配置 | 对应读取 `references/properties_reference.md`、`references/jmx_structure.md` 或 `references/sampler_types.md` |
+| 查询已注册节点字段或 XML 输出 | 检查 `scripts/jmx_tree_components.py` 中对应的 `build_*` 方法签名与实现 |
 
 不要为了普通 HTTP 场景加载全部通用参考文档。先搜索标题或组件名，再读取相关章节。
 
@@ -104,4 +102,4 @@ python3 scripts/generate_jmx_tree.py \
 | `__threadNum` | `${__threadNum}` | 当前线程号 |
 | `__machineIP` | `${__machineIP}` | 本机 IP |
 
-完整参数说明和全部内置函数见 `references/functions_reference.md`。JSR223 元件优先使用 Groovy，并启用编译缓存；脚本内使用 `vars.get("varName")`，不要使用 `${varName}` 插值。
+需要表外函数时，以 JMeter 5.6.3 官方函数文档为准。JSR223 元件优先使用 Groovy，并启用编译缓存；脚本内使用 `vars.get("varName")`，不要使用 `${varName}` 插值。

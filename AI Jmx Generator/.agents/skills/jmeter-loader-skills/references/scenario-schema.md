@@ -210,7 +210,7 @@ HTTP Request Defaults 的运行参数必须保留命令行覆盖能力。`host`�
 | `__threadNum` | `${__threadNum}` | 当前线程号 |
 | `__machineIP` | `${__machineIP}` | 本机 IP |
 
-完整参数说明和全部内置函数见 `references/functions_reference.md`。JSR223 元件优先使用 Groovy，并启用编译缓存；脚本内使用 `vars.get("varName")`，不要使用 `${varName}` 插值。
+需要表外函数时，以 JMeter 5.6.3 官方函数文档为准。JSR223 元件优先使用 Groovy，并启用编译缓存；脚本内使用 `vars.get("varName")`，不要使用 `${varName}` 插值。
 
 ## 示例
 
