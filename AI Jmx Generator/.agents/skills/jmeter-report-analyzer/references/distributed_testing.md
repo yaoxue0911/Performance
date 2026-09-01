@@ -257,11 +257,6 @@ jmeter -n -t test.jmx -l result.jtl -r
 # 或指定特定服务器
 jmeter -n -t test.jmx -l result.jtl -R 192.168.1.11,192.168.1.12
 
-# 传递属性到所有服务器
-jmeter -n -t test.jmx -l result.jtl -r \
-  -Gconcurrency=100 \
-  -Gduration=300 \
-  -Gtarget_host=api.example.com
 ```
 
 ### 5. 生成 HTML 报告

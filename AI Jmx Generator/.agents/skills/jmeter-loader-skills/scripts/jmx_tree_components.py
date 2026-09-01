@@ -34,11 +34,21 @@ class JMXComponentBuilder:
         return element
 
     @staticmethod
-    def _require_jmeter_property(field_name: str, value: str) -> None:
-        if not (isinstance(value, str) and value.startswith("${__P(") and value.endswith(")}")):
-            raise ValueError(
-                f"{field_name} must use ${{__P(propname,default)}} syntax"
-            )
+    def _require_concrete_integer(
+        field_name: str,
+        value: int,
+        *,
+        minimum: int | None = None,
+    ) -> None:
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ValueError(f"{field_name} must be a concrete integer")
+        if minimum is not None and value < minimum:
+            raise ValueError(f"{field_name} must be at least {minimum}")
+
+    @staticmethod
+    def _require_direct_string(field_name: str, value: str) -> None:
+        if not isinstance(value, str) or not value or "${" in value:
+            raise ValueError(f"{field_name} must be a direct string")
 
     @staticmethod
     def _collection_prop(name: str) -> ET.Element:
@@ -140,14 +150,27 @@ class JMXComponentBuilder:
     @staticmethod
     def build_thread_group(
         name: str = "Thread Group",
-        threads: str = "${__P(concurrency,10)}",
-        rampup: str = "${__P(rampup,10)}",
-        duration: str = "${__P(duration,60)}",
-        loops: str = "-1",
+        threads: int = 10,
+        rampup: int = 10,
+        duration: int = 60,
+        loops: int = -1,
         on_sample_error: str = "continue",
         same_user: bool = True,
-        delay: str = "",
+        delay: int = 0,
     ) -> ET.Element:
+        for field_name, value, minimum in (
+            ("threads", threads, 1),
+            ("rampup", rampup, 0),
+            ("duration", duration, 0),
+            ("delay", delay, 0),
+        ):
+            JMXComponentBuilder._require_concrete_integer(
+                field_name,
+                value,
+                minimum=minimum,
+            )
+        JMXComponentBuilder._require_concrete_integer("loops", loops)
+
         element = JMXComponentBuilder._named_element(
             "ThreadGroup", "ThreadGroupGui", "ThreadGroup", name
         )
@@ -194,20 +217,20 @@ class JMXComponentBuilder:
 
     @staticmethod
     def build_http_defaults(
-        host: str = "${__P(target_host,localhost)}",
-        port: str = "${__P(target_port,80)}",
-        protocol: str = "${__P(protocol,http)}",
-        encoding: str = "${__P(content_encoding,UTF-8)}",
-        path: str = "${__P(base_path,/)}",
+        host: str = "localhost",
+        port: int = 80,
+        protocol: str = "http",
+        encoding: str = "UTF-8",
+        path: str = "/",
     ) -> ET.Element:
+        JMXComponentBuilder._require_concrete_integer("port", port, minimum=1)
         for field_name, value in (
             ("host", host),
-            ("port", port),
             ("protocol", protocol),
             ("encoding", encoding),
             ("path", path),
         ):
-            JMXComponentBuilder._require_jmeter_property(field_name, value)
+            JMXComponentBuilder._require_direct_string(field_name, value)
 
         element = JMXComponentBuilder._named_element(
             "ConfigTestElement",
@@ -591,7 +614,8 @@ class JMXComponentBuilder:
         )
 
     @staticmethod
-    def build_loop_controller(loops: str = "5") -> ET.Element:
+    def build_loop_controller(loops: int = 5) -> ET.Element:
+        JMXComponentBuilder._require_concrete_integer("loops", loops)
         element = JMXComponentBuilder._named_element(
             "LoopController", "LoopControlPanel", "LoopController", "Loop Controller"
         )
@@ -633,8 +657,13 @@ class JMXComponentBuilder:
 
     @staticmethod
     def build_constant_timer(
-        delay_ms: str = "${__P(think_time,1000)}",
+        delay_ms: int = 1000,
     ) -> ET.Element:
+        JMXComponentBuilder._require_concrete_integer(
+            "delay_ms",
+            delay_ms,
+            minimum=0,
+        )
         element = JMXComponentBuilder._named_element(
             "ConstantTimer", "ConstantTimerGui", "ConstantTimer", "Constant Timer"
         )
@@ -645,9 +674,15 @@ class JMXComponentBuilder:
 
     @staticmethod
     def build_gaussian_timer(
-        delay_ms: str = "1000",
-        range_ms: str = "300",
+        delay_ms: int = 1000,
+        range_ms: int = 300,
     ) -> ET.Element:
+        for field_name, value in (("delay_ms", delay_ms), ("range_ms", range_ms)):
+            JMXComponentBuilder._require_concrete_integer(
+                field_name,
+                value,
+                minimum=0,
+            )
         element = JMXComponentBuilder._named_element(
             "GaussianRandomTimer",
             "GaussianRandomTimerGui",
@@ -664,9 +699,15 @@ class JMXComponentBuilder:
 
     @staticmethod
     def build_uniform_timer(
-        delay_ms: str = "1000",
-        range_ms: str = "500",
+        delay_ms: int = 1000,
+        range_ms: int = 500,
     ) -> ET.Element:
+        for field_name, value in (("delay_ms", delay_ms), ("range_ms", range_ms)):
+            JMXComponentBuilder._require_concrete_integer(
+                field_name,
+                value,
+                minimum=0,
+            )
         element = JMXComponentBuilder._named_element(
             "UniformRandomTimer",
             "UniformRandomTimerGui",
@@ -683,9 +724,18 @@ class JMXComponentBuilder:
 
     @staticmethod
     def build_synchronizing_timer(
-        group_size: str = "10",
-        timeout_ms: str = "0",
+        group_size: int = 10,
+        timeout_ms: int = 0,
     ) -> ET.Element:
+        for field_name, value in (
+            ("group_size", group_size),
+            ("timeout_ms", timeout_ms),
+        ):
+            JMXComponentBuilder._require_concrete_integer(
+                field_name,
+                value,
+                minimum=0,
+            )
         element = JMXComponentBuilder._named_element(
             "SyncTimer", "TestBeanGUI", "SyncTimer", "Synchronizing Timer"
         )
@@ -1065,9 +1115,10 @@ class JMXComponentBuilder:
 
     @staticmethod
     def build_result_collector(
-        filename: str = "${__P(result_file,result.jtl)}",
+        filename: str = "result.jtl",
         error_logging: bool = False,
     ) -> ET.Element:
+        JMXComponentBuilder._require_direct_string("filename", filename)
         element = JMXComponentBuilder._named_element(
             "ResultCollector",
             "ViewResultsFullVisualizer",
@@ -1129,6 +1180,7 @@ class JMXComponentBuilder:
         full_debug_data: bool,
         enabled: bool,
     ) -> ET.Element:
+        JMXComponentBuilder._require_direct_string("filename", filename)
         element = JMXComponentBuilder._named_element(
             "ResultCollector", gui_class, "ResultCollector", name
         )
@@ -1183,7 +1235,7 @@ class JMXComponentBuilder:
     @staticmethod
     def build_view_results_tree(
         name: str = "View Results Tree (Debug)",
-        filename: str = "${__P(debug_result_file,debug.jtl)}",
+        filename: str = "debug.jtl",
         error_logging: bool = False,
     ) -> ET.Element:
         return JMXComponentBuilder._build_explicit_result_listener(
@@ -1198,7 +1250,7 @@ class JMXComponentBuilder:
     @staticmethod
     def build_simple_data_writer(
         name: str = "Simple Data Writer (Load)",
-        filename: str = "${__P(load_result_file,load.jtl)}",
+        filename: str = "load.jtl",
         error_logging: bool = False,
     ) -> ET.Element:
         return JMXComponentBuilder._build_explicit_result_listener(

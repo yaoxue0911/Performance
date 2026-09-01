@@ -51,23 +51,15 @@ description: "Automates JMeter load testing: test execution, result parsing, and
    ```bash
    jmeter -n -t ${jmx_file_path} -l ${result_jtl_path} -j ${jmeter_log_path}
    ```
-2. **参数覆写格式**：
-   ```bash
-   jmeter -n -t test.jmx -l result.jtl -j jmeter.log \
-     -Jconcurrency=50 \
-     -Jrampup=60 \
-     -Jduration=300
-   ```
-3. **分布式压测配置**：
+2. **分布式压测配置**：
    ```bash
    jmeter -n -t test.jmx -l result.jtl -r -R slave1,slave2,slave3
    ```
-4. **命令参数说明**：
+3. **命令参数说明**：
    - `-n`: 非 GUI 模式运行
    - `-t`: 指定 JMX 文件路径
    - `-l`: 指定结果文件（JTL）路径
    - `-j`: 指定日志文件路径
-   - `-J`: 设置 JMeter 属性（覆盖 JMX 中的参数）
    - `-G`: 在所有服务器上定义属性（分布式模式）
    - `-r`: 启动远程服务器
    - `-R`: 指定远程服务器列表
@@ -75,11 +67,11 @@ description: "Automates JMeter load testing: test execution, result parsing, and
    - `-q`: 加载额外属性文件
    - `-e`: 测试结束后生成 HTML 报告
    - `-o`: HTML 报告输出目录
-5. **环境检查**：
+4. **环境检查**：
    - 执行前检查 `jmeter --version` 确认版本 >= 5.4
    - 验证 JMX 文件存在且格式正确
    - 确认输出目录有写入权限
-6. **HTML 报告生成**：
+5. **HTML 报告生成**：
    ```bash
    # 测试后自动生成
    jmeter -n -t test.jmx -l result.jtl -e -o report/
@@ -191,9 +183,7 @@ description: "Automates JMeter load testing: test execution, result parsing, and
 
 ```bash
 python run_jmeter.py --jmx test.jmx --result result.jtl \
-  --log jmeter.log \
-  --param concurrency=100 \
-  --param duration=600
+  --log jmeter.log
 ```
 
 **参数**：
@@ -201,7 +191,6 @@ python run_jmeter.py --jmx test.jmx --result result.jtl \
 - `--jmx`: JMX 文件路径
 - `--result`: 结果文件路径
 - `--log`: 日志文件路径
-- `--param`: 运行时参数
 - `--distributed`: 启用分布式压测
 - `--remote-hosts`: 远程服务器列表
 

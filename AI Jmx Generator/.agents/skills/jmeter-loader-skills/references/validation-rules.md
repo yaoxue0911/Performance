@@ -33,7 +33,7 @@ python3 scripts/generate_jmx_tree.py \
 
 ## HTTP 检查
 
-- HTTP Request Defaults 的 host、port、protocol使用 `${__P(propname,default)}`,default 为.saz文件中获取的值；字面量和 `${variable}` 均不允许。
+- HTTP Request Defaults 的 host、port、protocol、encoding 和 path 是从 SAZ/Fiddler 捕获及批准计划取得的确定值；port 为整数，其余字段为直接字符串。
 - 请求名称、method、path、headers、params 和 body 与批准计划一致。
 - HTTP Request Sampler 使用 `follow_redirects=true`。
 - POST 使用 Parameters 时，参数使用 `HTTPArgument.always_encode=true`。
@@ -43,7 +43,7 @@ python3 scripts/generate_jmx_tree.py \
 
 ## 参数化检查
 
-- 压测参数使用 `${__P(property,default)}`。
+- 并发数、Ramp-up、持续时间、循环次数、端口和定时器延迟使用批准计划中的具体整数。
 - CSV Data Set 字段通过 `${column_name}` 引用，CSV 第一行为列名。
 - 同一业务值在唯一性检查和提交请求中引用同一变量。
 - 前置响应值优先于随机、CSV 和静态值。

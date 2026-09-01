@@ -78,14 +78,12 @@ python3 scripts/generate_jmx_tree.py \
 - 运行期用户变量支持原生 `user_parameters`；批准计划要求 User Parameters 时不得改写成 JSR223。
 - 新场景必须同时包含 `view_results_tree`（默认启用、完整调试数据）和 `simple_data_writer`（默认禁用、轻量负载数据）。生成后必须告知用户：正式负载测试前禁用前者并启用后者。
 - 提取器支持 CSS Selector/HTML、XPath、JSON、Boundary 和正则。未注册类型不得伪造或用相近节点代替。
+- 线程数、Ramp-up、持续时间、循环次数、端口和定时器延迟在场景 JSON 中填写已批准的具体整数；主机、协议、编码、路径和结果文件名填写确定的直接值。
 
 ## JMeter 内置函数速查
 
 | 函数 | 语法 | 用途 |
 |---|---|---|
-| `__P` | `${__P(prop,default)}` | 读取属性，支持命令行 `-Jprop=value` 覆盖 |
-| `__property` | `${__property(prop,var,default)}` | 读取属性并可保存到变量 |
-| `__setProperty` | `${__setProperty(prop,value,)}` | 设置 JMeter 属性，供线程间共享 |
 | `__time` | `${__time(format,)}` | 获取当前时间 |
 | `__timeShift` | `${__timeShift(format,date,shift,,)}` | 时间偏移 |
 | `__Random` | `${__Random(min,max,)}` | 生成随机整数 |

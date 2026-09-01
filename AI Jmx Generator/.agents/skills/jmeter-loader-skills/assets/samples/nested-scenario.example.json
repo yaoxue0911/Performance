@@ -5,18 +5,18 @@
   "thread_groups": [
     {
       "name": "Example Users",
-      "threads": "${__P(concurrency,10)}",
-      "rampup": "${__P(rampup,10)}",
-      "duration": "${__P(duration,60)}",
+      "threads": 10,
+      "rampup": 10,
+      "duration": 60,
       "on_sample_error": "continue",
       "children": [
         {
           "type": "http_defaults",
-          "host": "${__P(target_host,example.invalid)}",
-          "port": "${__P(target_port,443)}",
-          "protocol": "${__P(protocol,https)}",
-          "encoding": "${__P(content_encoding,UTF-8)}",
-          "path": "${__P(base_path,/)}"
+          "host": "example.invalid",
+          "port": 443,
+          "protocol": "https",
+          "encoding": "UTF-8",
+          "path": "/"
         },
         {
           "type": "cookie_manager",
@@ -56,7 +56,7 @@
         {
           "type": "loop_controller",
           "name": "Example Business Iteration",
-          "loops": "${__P(business_loops,1)}",
+          "loops": 1,
           "children": [
             {
               "type": "user_parameters",
@@ -90,12 +90,12 @@
         {
           "type": "view_results_tree",
           "name": "View Results Tree (Debug)",
-          "filename": "${__P(debug_result_file,debug.jtl)}"
+          "filename": "debug.jtl"
         },
         {
           "type": "simple_data_writer",
           "name": "Simple Data Writer (Load)",
-          "filename": "${__P(load_result_file,load.jtl)}"
+          "filename": "load.jtl"
         }
       ]
     }

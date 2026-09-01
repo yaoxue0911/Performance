@@ -11,9 +11,7 @@ JMeter 执行脚本 - 管理 JMeter 压测执行流程
 
 用法:
     python run_jmeter.py --jmx test.jmx --result result.jtl \
-        --log jmeter.log \
-        --param concurrency=100 \
-        --param duration=600
+        --log jmeter.log
 """
 
 import argparse
@@ -349,8 +347,6 @@ def main():
         epilog='''
 示例:
   python run_jmeter.py --jmx test.jmx --result result.jtl --log jmeter.log
-  python run_jmeter.py --jmx test.jmx --result result.jtl --log jmeter.log \
-    --param concurrency=100 --param duration=600
   python run_jmeter.py --jmx test.jmx --distributed --remote-hosts slave1,slave2
   python run_jmeter.py --check-environment
         '''

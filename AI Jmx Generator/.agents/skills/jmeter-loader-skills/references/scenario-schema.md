@@ -26,9 +26,9 @@
 
 线程组使用：
 
-- `threads`: `${__P(concurrency,10)}`
-- `rampup`: `${__P(rampup,10)}`
-- `duration`: `${__P(duration,60)}`
+- `threads`: `10`
+- `rampup`: `10`
+- `duration`: `60`
 - `on_sample_error`: `continue`
 
 ## 大型场景分片
@@ -131,13 +131,13 @@ python3 scripts/assemble_scenario.py \
 
 ### HTTP Request Defaults
 
-HTTP Request Defaults 的运行参数必须保留命令行覆盖能力。`host`、`port`、`protocol`必须使用 `${__P(propname,default)}`，不得传入字面量或普通 JMeter 变量：
+HTTP Request Defaults 的 `host`、`port`、`protocol`、`encoding` 和 `path` 使用 SAZ/Fiddler 捕获及批准计划中的确定值。`port` 是整数，其余字段是直接字符串：
 
 ```json
-{"type":"http_defaults","host":"${__P(target_host,example.invalid)}","port":"${__P(target_port,443)}","protocol":"${__P(protocol,https)}"}
+{"type":"http_defaults","host":"example.invalid","port":443,"protocol":"https","encoding":"UTF-8","path":"/"}
 ```
 
-省略这些字段时，生成器仍会写入对应的 `__P` 默认表达式；不会写入固定值。
+实际场景应明确填写这些字段。生成器的直接默认值仅用于最小结构验证，不能代替捕获内容和批准计划。
 
 ### CSS/XPath 提取器
 
@@ -170,11 +170,11 @@ HTTP Request Defaults 的运行参数必须保留命令行覆盖能力。`host`�
 新场景默认同时包含：
 
 ```json
-{"type":"view_results_tree","filename":"${__P(debug_result_file,debug.jtl)}"}
+{"type":"view_results_tree","filename":"debug.jtl"}
 ```
 
 ```json
-{"type":"simple_data_writer","filename":"${__P(load_result_file,load.jtl)}"}
+{"type":"simple_data_writer","filename":"load.jtl"}
 ```
 
 `view_results_tree` 默认启用，使用 XML JTL 保存请求、响应、请求头和响应头等调试数据。`simple_data_writer` 默认禁用，使用轻量 CSV JTL。正式负载测试前切换启用状态。`result_collector` 仅为既有场景保留，新场景不再使用这个含义模糊的类型。
@@ -191,9 +191,6 @@ HTTP Request Defaults 的运行参数必须保留命令行覆盖能力。`host`�
 
 | 函数 | 语法 | 用途 |
 |---|---|---|
-| `__P` | `${__P(prop,default)}` | 读取属性，支持命令行 `-Jprop=value` 覆盖 |
-| `__property` | `${__property(prop,var,default)}` | 读取属性并可保存到变量 |
-| `__setProperty` | `${__setProperty(prop,value,)}` | 设置 JMeter 属性，供线程间共享 |
 | `__time` | `${__time(format,)}` | 获取当前时间 |
 | `__timeShift` | `${__timeShift(format,date,shift,,)}` | 时间偏移 |
 | `__Random` | `${__Random(min,max,)}` | 生成随机整数 |
