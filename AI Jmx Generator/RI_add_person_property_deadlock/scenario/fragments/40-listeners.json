@@ -1,0 +1,16 @@
+[
+    {
+        "type":  "view_results_tree",
+        "name":  "View Results Tree Debug",
+        "filename":  "debug.jtl",
+        "error_logging":  false,
+        "enabled":  true
+    },
+    {
+        "type":  "simple_data_writer",
+        "name":  "Simple Data Writer Load",
+        "filename":  "RI_add_person_property_deadlock.jtl",
+        "error_logging":  false,
+        "enabled":  false
+    }
+]

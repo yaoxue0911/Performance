@@ -24,12 +24,6 @@
 - `thread_groups`：非空数组。
 - 每个 `thread_groups[]`：必须包含非空 `children`。
 
-线程组使用：
-
-- `threads`: `10`
-- `rampup`: `10`
-- `duration`: `60`
-- `on_sample_error`: `continue`
 
 ## 大型场景分片
 

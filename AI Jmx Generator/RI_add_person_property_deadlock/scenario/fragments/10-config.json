@@ -1,0 +1,45 @@
+[
+    {
+        "type":  "http_defaults",
+        "host":  "rirmsint.csitech.com",
+        "port":  443,
+        "protocol":  "https",
+        "encoding":  "UTF-8",
+        "path":  "/"
+    },
+    {
+        "type":  "header_manager",
+        "name":  "Common HTTP Headers",
+        "headers":  [
+                        {
+                            "value":  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+                            "name":  "User-Agent"
+                        },
+                        {
+                            "value":  "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+                            "name":  "Accept"
+                        },
+                        {
+                            "value":  "en-US,en;q=0.9",
+                            "name":  "Accept-Language"
+                        }
+                    ]
+    },
+    {
+        "type":  "cookie_manager",
+        "name":  "HTTP Cookie Manager",
+        "clear_each_iteration":  false
+    },
+    {
+        "type":  "csv_data_set",
+        "name":  "Three Login Accounts",
+        "filename":  "users.csv",
+        "variable_names":  "user_name,password,staff_id,staff_region_id",
+        "delimiter":  ",",
+        "ignore_first_line":  true,
+        "recycle":  true,
+        "stop_thread":  false,
+        "share_mode":  "shareMode.all",
+        "encoding":  "UTF-8"
+    }
+]

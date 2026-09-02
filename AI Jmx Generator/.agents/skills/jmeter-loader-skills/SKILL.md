@@ -5,7 +5,7 @@ description: Use when converting SAZ or Fiddler HTTP captures into parameterized
 
 # 生成 JMeter 测试计划
 
-把 SAZ/Fiddler HTTP 会话转换为可审阅的文字版测试计划，并且只在用户明确批准后生成 JMX。
+把 SAZ/Fiddler HTTP 会话转换为可审阅的中文文字版测试计划，并且只在用户明确批准后生成 JMX。
 
 工作流分为两个阶段：
 

@@ -1,0 +1,378 @@
+{
+    "type":  "once_only_controller",
+    "name":  "Login and Home Initialization",
+    "children":  [
+                     {
+                         "type":  "transaction_controller",
+                         "name":  "Login and Initialize Session",
+                         "parent":  true,
+                         "include_timers":  false,
+                         "children":  [
+                                          {
+                                              "type":  "http_sampler",
+                                              "name":  "GET /RMS/Login.aspx load login page",
+                                              "method":  "GET",
+                                              "path":  "/RMS/Login.aspx",
+                                              "host":  "",
+                                              "port":  "",
+                                              "protocol":  "",
+                                              "encoding":  "UTF-8",
+                                              "params":  [
+
+                                                         ],
+                                              "connect_timeout":  "10000",
+                                              "response_timeout":  "300000",
+                                              "follow_redirects":  true,
+                                              "use_keepalive":  true,
+                                              "post_body_raw":  false,
+                                              "children":  [
+                                                               {
+                                                                   "type":  "css_extractor",
+                                                                   "name":  "Extract login_viewstate",
+                                                                   "refname":  "login_viewstate",
+                                                                   "expression":  "input[name=\u0027__VIEWSTATE\u0027]",
+                                                                   "attribute":  "value",
+                                                                   "match_number":  "1",
+                                                                   "default_value":  "NOT_FOUND",
+                                                                   "default_empty_value":  false,
+                                                                   "scope":  "parent",
+                                                                   "implementation":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "css_extractor",
+                                                                   "name":  "Extract login_viewstate_generator",
+                                                                   "refname":  "login_viewstate_generator",
+                                                                   "expression":  "input[name=\u0027__VIEWSTATEGENERATOR\u0027]",
+                                                                   "attribute":  "value",
+                                                                   "match_number":  "1",
+                                                                   "default_value":  "NOT_FOUND",
+                                                                   "default_empty_value":  false,
+                                                                   "scope":  "parent",
+                                                                   "implementation":  ""
+                                                               }
+                                                           ]
+                                          },
+                                          {
+                                              "type":  "http_sampler",
+                                              "name":  "POST /RMS/Login.aspx submit login",
+                                              "method":  "POST",
+                                              "path":  "/RMS/Login.aspx",
+                                              "host":  "",
+                                              "port":  "",
+                                              "protocol":  "",
+                                              "encoding":  "UTF-8",
+                                              "params":  [
+                                                             {
+                                                                 "name":  "__VIEWSTATE",
+                                                                 "value":  "${login_viewstate}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "__VIEWSTATEGENERATOR",
+                                                                 "value":  "${login_viewstate_generator}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "txtUserName",
+                                                                 "value":  "${user_name}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "txtPassword",
+                                                                 "value":  "${password}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "btnLogin",
+                                                                 "value":  "Login",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "hdnDebugConn",
+                                                                 "value":  "",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "hdnComputer",
+                                                                 "value":  "WUFPWFVFHzUwOUE0QzAwM0UyMkZQWDJYSjIfNTM0NzhkNWEzN2ViYjFlNGYxMjhlY2JmZjViMTEwMjZmZDVkOWUwYh9XaW5kb3dzH0ludGVsKFIpQ29yZShUTSlpNS02NTAwQ1BVQDMuMjBHSHofTWljcm9zb2Z0IFdpbmRvd3MgMTAgUHJvIDY0LWJpdB9yZWdPSw==",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "usbKeyValue",
+                                                                 "value":  "",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "computerNameValue",
+                                                                 "value":  "",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             }
+                                                         ],
+                                              "connect_timeout":  "10000",
+                                              "response_timeout":  "300000",
+                                              "follow_redirects":  true,
+                                              "use_keepalive":  true,
+                                              "post_body_raw":  false,
+                                              "children":  [
+                                                               {
+                                                                   "type":  "header_manager",
+                                                                   "name":  "Login Form Headers",
+                                                                   "headers":  [
+                                                                                   {
+                                                                                       "value":  "application/x-www-form-urlencoded",
+                                                                                       "name":  "Content-Type"
+                                                                                   },
+                                                                                   {
+                                                                                       "value":  "https://rirmsint.csitech.com",
+                                                                                       "name":  "Origin"
+                                                                                   }
+                                                                               ]
+                                                               },
+                                                               {
+                                                                   "type":  "css_extractor",
+                                                                   "name":  "Extract disclaimer_viewstate",
+                                                                   "refname":  "disclaimer_viewstate",
+                                                                   "expression":  "input[name=\u0027__VIEWSTATE\u0027]",
+                                                                   "attribute":  "value",
+                                                                   "match_number":  "1",
+                                                                   "default_value":  "NOT_FOUND",
+                                                                   "default_empty_value":  false,
+                                                                   "scope":  "all",
+                                                                   "implementation":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "css_extractor",
+                                                                   "name":  "Extract disclaimer_viewstate_generator",
+                                                                   "refname":  "disclaimer_viewstate_generator",
+                                                                   "expression":  "input[name=\u0027__VIEWSTATEGENERATOR\u0027]",
+                                                                   "attribute":  "value",
+                                                                   "match_number":  "1",
+                                                                   "default_value":  "NOT_FOUND",
+                                                                   "default_empty_value":  false,
+                                                                   "scope":  "all",
+                                                                   "implementation":  ""
+                                                               },
+                                                               {
+                                                                   "type":  "css_extractor",
+                                                                   "name":  "Extract disclaimer_event_validation",
+                                                                   "refname":  "disclaimer_event_validation",
+                                                                   "expression":  "input[name=\u0027__EVENTVALIDATION\u0027]",
+                                                                   "attribute":  "value",
+                                                                   "match_number":  "1",
+                                                                   "default_value":  "NOT_FOUND",
+                                                                   "default_empty_value":  false,
+                                                                   "scope":  "all",
+                                                                   "implementation":  ""
+                                                               }
+                                                           ]
+                                          },
+                                          {
+                                              "type":  "http_sampler",
+                                              "name":  "GET /RMS/AspSoft/Disclaimer/Disclaimer.htm load disclaimer",
+                                              "method":  "GET",
+                                              "path":  "/RMS/AspSoft/Disclaimer/Disclaimer.htm?rnd=0.7382110518734248",
+                                              "host":  "",
+                                              "port":  "",
+                                              "protocol":  "",
+                                              "encoding":  "UTF-8",
+                                              "params":  [
+
+                                                         ],
+                                              "connect_timeout":  "10000",
+                                              "response_timeout":  "300000",
+                                              "follow_redirects":  true,
+                                              "use_keepalive":  true,
+                                              "post_body_raw":  false,
+                                              "children":  [
+
+                                                           ]
+                                          },
+                                          {
+                                              "type":  "http_sampler",
+                                              "name":  "POST /RMS/DisclaimerRedirect.aspx accept disclaimer",
+                                              "method":  "POST",
+                                              "path":  "/RMS/DisclaimerRedirect.aspx?division_id=${division_id}",
+                                              "host":  "",
+                                              "port":  "",
+                                              "protocol":  "",
+                                              "encoding":  "UTF-8",
+                                              "params":  [
+                                                             {
+                                                                 "name":  "__VIEWSTATE",
+                                                                 "value":  "${disclaimer_viewstate}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "__VIEWSTATEGENERATOR",
+                                                                 "value":  "${disclaimer_viewstate_generator}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "__EVENTVALIDATION",
+                                                                 "value":  "${disclaimer_event_validation}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "btnJump",
+                                                                 "value":  "",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             }
+                                                         ],
+                                              "connect_timeout":  "10000",
+                                              "response_timeout":  "300000",
+                                              "follow_redirects":  true,
+                                              "use_keepalive":  true,
+                                              "post_body_raw":  false,
+                                              "children":  [
+                                                               {
+                                                                   "type":  "header_manager",
+                                                                   "name":  "Disclaimer Form Headers",
+                                                                   "headers":  [
+                                                                                   {
+                                                                                       "value":  "application/x-www-form-urlencoded",
+                                                                                       "name":  "Content-Type"
+                                                                                   },
+                                                                                   {
+                                                                                       "value":  "https://rirmsint.csitech.com",
+                                                                                       "name":  "Origin"
+                                                                                   }
+                                                                               ]
+                                                               }
+                                                           ]
+                                          },
+                                          {
+                                              "type":  "http_sampler",
+                                              "name":  "GET /RMS/HomeA.aspx initialize home",
+                                              "method":  "GET",
+                                              "path":  "/RMS/HomeA.aspx?division_id=${division_id}",
+                                              "host":  "",
+                                              "port":  "",
+                                              "protocol":  "",
+                                              "encoding":  "UTF-8",
+                                              "params":  [
+
+                                                         ],
+                                              "connect_timeout":  "10000",
+                                              "response_timeout":  "300000",
+                                              "follow_redirects":  true,
+                                              "use_keepalive":  true,
+                                              "post_body_raw":  false,
+                                              "children":  [
+
+                                                           ]
+                                          },
+                                          {
+                                              "type":  "http_sampler",
+                                              "name":  "POST /RMS/AspSoft/Inbox/inboxService.ashx initialize inbox counts",
+                                              "method":  "POST",
+                                              "path":  "/RMS/AspSoft/Inbox/inboxService.ashx?debug_connection=0",
+                                              "host":  "",
+                                              "port":  "",
+                                              "protocol":  "",
+                                              "encoding":  "UTF-8",
+                                              "params":  [
+                                                             {
+                                                                 "name":  "Action",
+                                                                 "value":  "GetInboxCaseCountOneTime",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "iStaffID",
+                                                                 "value":  "${staff_id}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "iDivisionID",
+                                                                 "value":  "${division_id}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "staff_region_id",
+                                                                 "value":  "${staff_region_id}",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "REGION",
+                                                                 "value":  "102040,102980,103030,103040,104150,104160,104330,104900,104960,104970,104990,105090",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             },
+                                                             {
+                                                                 "name":  "sListPageID",
+                                                                 "value":  "listInbox_ReportPendingMyReview,listInbox_eTicketNH_MyPendingTransfer_RMS,listInbox_AllDivisionCase120,listInbox_AllAgencyCase120,listInbox_eTicketNH_MyTransferred_RMS,listInbox_eTicketNH_MyOnHold_RMS,listInbox_IncompleteReport,listInbox_CM_VerifyAddress,listInbox_MyActiveCase_Primary,listInbox_Ticket_MyIssued_RMS,listInbox_AgencyCaseWOdemographics",
+                                                                 "always_encode":  true,
+                                                                 "use_equals":  true
+                                                             }
+                                                         ],
+                                              "connect_timeout":  "10000",
+                                              "response_timeout":  "300000",
+                                              "follow_redirects":  true,
+                                              "use_keepalive":  true,
+                                              "post_body_raw":  false,
+                                              "children":  [
+                                                               {
+                                                                   "type":  "header_manager",
+                                                                   "name":  "Inbox AJAX Headers",
+                                                                   "headers":  [
+                                                                                   {
+                                                                                       "value":  "application/x-www-form-urlencoded; charset=UTF-8",
+                                                                                       "name":  "Content-Type"
+                                                                                   },
+                                                                                   {
+                                                                                       "value":  "https://rirmsint.csitech.com",
+                                                                                       "name":  "Origin"
+                                                                                   },
+                                                                                   {
+                                                                                       "value":  "XMLHttpRequest",
+                                                                                       "name":  "X-Requested-With"
+                                                                                   },
+                                                                                   {
+                                                                                       "value":  "*/*",
+                                                                                       "name":  "Accept"
+                                                                                   }
+                                                                               ]
+                                                               }
+                                                           ]
+                                          },
+                                          {
+                                              "type":  "http_sampler",
+                                              "name":  "GET /RMS/AspSoft/inbox/inboxTaskList.aspx initialize active cases",
+                                              "method":  "GET",
+                                              "path":  "/RMS/AspSoft/inbox/inboxTaskList.aspx?nextPID=listInbox_MyActiveCase_Primary\u0026inbox_staff_id=${staff_id}\u0026inbox_sub_id=${inbox_sub_id}\u0026UseDefault=1\u0026is_temp_page_size=1\u0026page_size=100",
+                                              "host":  "",
+                                              "port":  "",
+                                              "protocol":  "",
+                                              "encoding":  "UTF-8",
+                                              "params":  [
+
+                                                         ],
+                                              "connect_timeout":  "10000",
+                                              "response_timeout":  "300000",
+                                              "follow_redirects":  true,
+                                              "use_keepalive":  true,
+                                              "post_body_raw":  false,
+                                              "children":  [
+
+                                                           ]
+                                          }
+                                      ]
+                     }
+                 ]
+}

@@ -1,0 +1,20 @@
+2026-09-01 14:58:34,144 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-09-01 14:58:34,158 INFO o.a.j.JMeter: Loading user properties from: D:\Files\apache-jmeter-5.6.3\apache-jmeter-5.6.3\bin\user.properties
+2026-09-01 14:58:34,159 INFO o.a.j.JMeter: Loading system properties from: D:\Files\apache-jmeter-5.6.3\apache-jmeter-5.6.3\bin\system.properties
+2026-09-01 14:58:34,168 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-09-01 14:58:34,168 INFO o.a.j.JMeter: Version 5.6.3
+2026-09-01 14:58:34,168 INFO o.a.j.JMeter: java.version=1.8.0_351
+2026-09-01 14:58:34,169 INFO o.a.j.JMeter: java.vm.name=Java HotSpot(TM) 64-Bit Server VM
+2026-09-01 14:58:34,169 INFO o.a.j.JMeter: os.name=Windows 10
+2026-09-01 14:58:34,169 INFO o.a.j.JMeter: os.arch=amd64
+2026-09-01 14:58:34,169 INFO o.a.j.JMeter: os.version=10.0
+2026-09-01 14:58:34,169 INFO o.a.j.JMeter: file.encoding=GBK
+2026-09-01 14:58:34,170 INFO o.a.j.JMeter: java.awt.headless=null
+2026-09-01 14:58:34,170 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-09-01 14:58:34,170 INFO o.a.j.JMeter: Available Processors =4
+2026-09-01 14:58:34,176 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-09-01 14:58:34,176 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-09-01 14:58:34,176 INFO o.a.j.JMeter: JMeterHome=D:\Files\apache-jmeter-5.6.3\apache-jmeter-5.6.3
+2026-09-01 14:58:34,176 INFO o.a.j.JMeter: user.dir  =D:\Files\Performance\Performance\AI Jmx Generator
+2026-09-01 14:58:34,177 INFO o.a.j.JMeter: PWD       =D:\Files\Performance\Performance\AI Jmx Generator
+2026-09-01 14:58:34,179 INFO o.a.j.JMeter: IP: 10.10.2.130 Name: YaoXue FullName: YaoXue.CSICN.CSITECH.COM

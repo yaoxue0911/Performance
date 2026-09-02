@@ -1,0 +1,36 @@
+{
+    "test_plan":  {
+                      "name":  "RI Add Suspect and Property Deadlock",
+                      "variables":  {
+                                        "division_id":  "3",
+                                        "inbox_sub_id":  "10030121",
+                                        "STX":  "${__groovy((char)2,)}"
+                                    }
+                  },
+    "thread_groups":  [
+                          {
+                              "name":  "20 Concurrent Users",
+                              "threads":  20,
+                              "rampup":  1,
+                              "duration":  1800,
+                              "loops":  1,
+                              "on_sample_error":  "continue",
+                              "same_user":  true,
+                              "delay":  0,
+                              "children":  [
+                                               {
+                                                   "$include":  "fragments/10-config.json"
+                                               },
+                                               {
+                                                   "$include":  "fragments/20-auth.json"
+                                               },
+                                               {
+                                                   "$include":  "fragments/30-business.json"
+                                               },
+                                               {
+                                                   "$include":  "fragments/40-listeners.json"
+                                               }
+                                           ]
+                          }
+                      ]
+}

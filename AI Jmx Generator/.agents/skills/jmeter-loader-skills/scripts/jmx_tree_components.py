@@ -632,7 +632,7 @@ class JMXComponentBuilder:
         input_prefix: str,
         output_var: str,
         start_index: str = "0",
-        end_index: str = "-1",
+        end_index: str = "",
         use_separator: bool = True,
     ) -> ET.Element:
         element = JMXComponentBuilder._named_element(
