@@ -1953,7 +1953,7 @@ vars.put(&apos;create_report_p2&apos;, encoder.encodeToString(p2.getBytes(java.n
             </hashTree>
           </hashTree>
         </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Debug)">
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (Debug)" enabled="false">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -1990,7 +1990,7 @@ vars.put(&apos;create_report_p2&apos;, encoder.encodeToString(p2.getBytes(java.n
           <stringProp name="filename">CMOEM_permission_report_debug.jtl</stringProp>
         </ResultCollector>
         <hashTree/>
-        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector" testname="Simple Data Writer (Load)" enabled="false">
+        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector" testname="Simple Data Writer (Load)">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
