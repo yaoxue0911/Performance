@@ -1,5 +1,5 @@
 ---
-name: jmeter-loader-skills
+name: jmeter-generator-skills
 description: Use when converting SAZ or Fiddler HTTP captures into parameterized JMeter test-plan previews, or generating tree-structured JMX files from explicitly approved previews.
 ---
 
@@ -47,7 +47,7 @@ description: Use when converting SAZ or Fiddler HTTP captures into parameterized
 1. 读取 `references/scenario-schema.md` 和 `references/validation-rules.md`。
 2. 把批准计划逐层转换为嵌套场景 JSON；保持节点顺序和 `children` 层级。预计完整 Scenario 超过 30 KB 或超过 20 个 sampler 时，优先按 Transaction Controller 或清晰业务单元创建分片。
 3. 仅在需要查看完整格式时读取 `assets/samples/nested-scenario.example.json`。它只展示结构，不是业务数据来源。
-4. 每个分片写入后运行 `python3 -m json.tool <fragment>`。以下命令均从技能根目录 `AI Jmx Generator/.agents/skills/jmeter-loader-skills` 执行。使用分片时，先组装：
+4. 每个分片写入后运行 `python3 -m json.tool <fragment>`。以下命令均从技能根目录 `AI Jmx Generator/.agents/skills/jmeter-generator-skills` 执行。使用分片时，先组装：
 
 ```bash
 python3 scripts/assemble_scenario.py \
